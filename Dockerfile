@@ -22,11 +22,16 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=4000
 
-COPY --from=server-deps /app/server/node_modules ./server/node_modules
-COPY server/ ./server/
-COPY --from=client-build /app/client/dist ./client/dist
+COPY --from=server-deps --chown=node:node /app/server/node_modules ./server/node_modules
+COPY --chown=node:node server/ ./server/
+COPY --from=client-build --chown=node:node /app/client/dist ./client/dist
 
-RUN mkdir -p /app/server/data /app/server/uploads
+# Named volumes inherit ownership from the image path they first mount over, so this
+# chown (done as root, before dropping privileges) is what lets the non-root `node`
+# user actually write to /app/server/data and /app/server/uploads at runtime.
+RUN mkdir -p /app/server/data /app/server/uploads && chown -R node:node /app
+
+USER node
 
 EXPOSE 4000
 

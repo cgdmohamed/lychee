@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { db } from './index.js';
+import { resolveAdminCredentials } from './adminCredentials.js';
 
 const MENU = [
   { key: 'salads', nameEn: 'signature salads', nameAr: 'السلطات المميزة', items: [
@@ -169,8 +170,7 @@ function seed() {
     console.log(`Seeded ${MENU.length} categories.`);
   }
 
-  const adminEmail = (process.env.SEED_ADMIN_EMAIL || 'admin@lycheesaudi.com').trim().toLowerCase();
-  const adminPassword = (process.env.SEED_ADMIN_PASSWORD || 'lychee-admin-2026').trim();
+  const { email: adminEmail, password: adminPassword } = resolveAdminCredentials();
   const existingAdmin = db.prepare('SELECT id FROM admin_users WHERE email = ?').get(adminEmail);
   if (!existingAdmin) {
     const hash = bcrypt.hashSync(adminPassword, 10);

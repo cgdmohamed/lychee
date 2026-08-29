@@ -10,13 +10,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const uploadsDir = path.join(__dirname, '..', '..', 'uploads');
 fs.mkdirSync(uploadsDir, { recursive: true });
 
-const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml']);
+// SVG deliberately excluded: it can embed <script>, which executes if the uploaded
+// file is opened directly in a browser tab — stored XSS via an otherwise-ordinary
+// "photo" upload field.
+const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const EXT_BY_TYPE = {
   'image/jpeg': '.jpg',
   'image/png': '.png',
   'image/webp': '.webp',
   'image/gif': '.gif',
-  'image/svg+xml': '.svg',
 };
 
 const storage = multer.diskStorage({
@@ -31,7 +33,11 @@ const upload = multer({
   storage,
   limits: { fileSize: 8 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    if (!ALLOWED_TYPES.has(file.mimetype)) return cb(new Error('unsupported file type'));
+    if (!ALLOWED_TYPES.has(file.mimetype)) {
+      const err = new Error('unsupported file type — use JPEG, PNG, WebP, or GIF');
+      err.status = 400;
+      return cb(err);
+    }
     cb(null, true);
   },
 });
@@ -41,6 +47,13 @@ const router = Router();
 router.post('/', requireAuth, upload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'no file uploaded' });
   res.json({ url: `/uploads/${req.file.filename}` });
+});
+
+// eslint-disable-next-line no-unused-vars
+router.use((err, req, res, next) => {
+  // Multer's own errors (LIMIT_FILE_SIZE, etc.) and the fileFilter rejection above
+  // are both client input problems, not server failures.
+  res.status(err.status || 400).json({ error: err.message || 'upload failed' });
 });
 
 export default router;

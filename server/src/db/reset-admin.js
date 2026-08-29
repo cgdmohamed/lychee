@@ -6,9 +6,9 @@
 // attempt. Run it with: node src/db/reset-admin.js (or `npm run reset-admin`).
 import bcrypt from 'bcryptjs';
 import { db } from './index.js';
+import { resolveAdminCredentials } from './adminCredentials.js';
 
-const adminEmail = (process.env.SEED_ADMIN_EMAIL || 'admin@lycheesaudi.com').trim().toLowerCase();
-const adminPassword = (process.env.SEED_ADMIN_PASSWORD || 'lychee-admin-2026').trim();
+const { email: adminEmail, password: adminPassword } = resolveAdminCredentials();
 
 const hash = bcrypt.hashSync(adminPassword, 10);
 const existing = db.prepare('SELECT id FROM admin_users WHERE email = ?').get(adminEmail);

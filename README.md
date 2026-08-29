@@ -67,12 +67,18 @@ if it already exists — unlike the seed script, it's meant to be run on demand.
 
 ```bash
 cd client && npm run build   # outputs client/dist
-cd server && npm start        # serves the API *and* client/dist on one port (see index.js)
+cd server && NODE_ENV=production JWT_SECRET=... SEED_ADMIN_PASSWORD=... npm start
 ```
 
 The server auto-detects `client/dist` and serves it as a single-page app (with `/admin`
 client-side routing falling back to `index.html`), so in production there's just one process
 and one port — no separate reverse-proxy config needed for the two apps.
+
+**`JWT_SECRET` and `SEED_ADMIN_PASSWORD` are required when `NODE_ENV=production`** — the
+process refuses to start without them, rather than silently falling back to the placeholder
+values in `.env.example` (those are now public, in this repo's history). This check is
+Docker-independent; it applies to any production deployment, not just the compose file's
+`:?` requirement.
 
 ## Docker
 

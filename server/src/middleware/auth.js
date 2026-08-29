@@ -1,6 +1,11 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
+const DEV_FALLBACK_SECRET = 'dev-secret-change-me';
+
+if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
+  throw new Error('JWT_SECRET must be set when NODE_ENV=production — refusing to start with a known, public fallback secret.');
+}
+const JWT_SECRET = process.env.JWT_SECRET || DEV_FALLBACK_SECRET;
 
 export function signToken(admin) {
   return jwt.sign({ sub: admin.id, email: admin.email }, JWT_SECRET, { expiresIn: '12h' });

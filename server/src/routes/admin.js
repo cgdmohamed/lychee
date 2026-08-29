@@ -74,6 +74,10 @@ router.post('/items', (req, res) => {
   if (!categoryId || !nameEn || !nameAr || price === undefined) {
     return res.status(400).json({ error: 'categoryId, nameEn, nameAr, price required' });
   }
+  const numericPrice = Number(price);
+  if (!Number.isFinite(numericPrice) || numericPrice < 0) {
+    return res.status(400).json({ error: 'price must be a non-negative number' });
+  }
   const category = db.prepare('SELECT id FROM categories WHERE id = ?').get(categoryId);
   if (!category) return res.status(400).json({ error: 'invalid categoryId' });
 
@@ -81,7 +85,7 @@ router.post('/items', (req, res) => {
   const result = db.prepare(
     `INSERT INTO items (category_id, name_en, name_ar, desc_en, desc_ar, price, spicy, is_new, collab_en, collab_ar, sort_order)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(categoryId, nameEn, nameAr, descEn || null, descAr || null, Number(price), spicy ? 1 : 0, isNew ? 1 : 0, collabEn || null, collabAr || null, sortOrder);
+  ).run(categoryId, nameEn, nameAr, descEn || null, descAr || null, numericPrice, spicy ? 1 : 0, isNew ? 1 : 0, collabEn || null, collabAr || null, sortOrder);
 
   res.status(201).json(serializeItem(db.prepare('SELECT * FROM items WHERE id = ?').get(result.lastInsertRowid)));
 });
@@ -90,6 +94,12 @@ router.put('/items/:id', (req, res) => {
   const item = db.prepare('SELECT * FROM items WHERE id = ?').get(req.params.id);
   if (!item) return res.status(404).json({ error: 'not found' });
   const b = req.body || {};
+  if (b.price !== undefined) {
+    const numericPrice = Number(b.price);
+    if (!Number.isFinite(numericPrice) || numericPrice < 0) {
+      return res.status(400).json({ error: 'price must be a non-negative number' });
+    }
+  }
   db.prepare(
     `UPDATE items SET name_en=?, name_ar=?, desc_en=?, desc_ar=?, price=?, image=?, spicy=?, is_new=?,
        collab_en=?, collab_ar=?, cal=?, protein=?, carbs=?, fat=? WHERE id=?`

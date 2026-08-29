@@ -80,7 +80,7 @@ export default function ImageSlot({
         </span>
       )}
       {editable && (
-        <input ref={inputRef} type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} />
+        <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleFile} style={{ display: 'none' }} />
       )}
       {error && (
         <div style={{ position: 'absolute', bottom: 2, left: 2, right: 2, fontSize: 9, color: '#b23b3b', background: '#fff', padding: '2px 4px', borderRadius: 4 }}>
