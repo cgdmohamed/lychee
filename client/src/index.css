@@ -11,3 +11,34 @@ a:hover { color: #6fa088; }
 ::selection { background: #6fa088; color: #fffffc; }
 button { font: inherit; }
 input[type="range"] { accent-color: #6fa088; }
+
+/* Admin UI interaction states (kept as classnames since inline styles can't do :focus/:hover) */
+.admin-field {
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.admin-field:focus {
+  outline: none;
+  border-color: #004438 !important;
+  box-shadow: 0 0 0 3px rgba(0,68,56,0.12);
+}
+.admin-btn {
+  transition: opacity .15s ease, transform .05s ease, box-shadow .15s ease;
+}
+.admin-btn:hover:not(:disabled) { opacity: 0.85; }
+.admin-btn:active:not(:disabled) { transform: scale(0.97); }
+.admin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.admin-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0,68,56,0.25);
+}
+.admin-card {
+  transition: box-shadow .15s ease, border-color .15s ease;
+}
+.admin-row:hover {
+  background: rgba(0,68,56,0.04);
+}
+@keyframes admin-fade-in {
+  from { opacity: 0; transform: translateY(-2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.admin-fade-in { animation: admin-fade-in .15s ease; }

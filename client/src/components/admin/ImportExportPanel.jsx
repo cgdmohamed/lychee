@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { api } from '../../api';
+import { colors, button, card, sectionTitle } from '../../admin/theme';
 
 export default function ImportExportPanel({ onImported }) {
   const csvInputRef = useRef(null);
@@ -44,53 +45,57 @@ export default function ImportExportPanel({ onImported }) {
   }
 
   return (
-    <div style={{ marginBottom: 20, padding: 12, border: '1px solid rgba(0,0,0,0.1)', borderRadius: 12 }}>
-      <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8 }}>bulk import / export</div>
+    <div style={card()} className="admin-card">
+      <div style={sectionTitle()}>bulk import / export</div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
-        <div style={{ fontSize: 11, color: '#8a8f8a' }}>
-          items CSV — bulk-edit names/prices/badges/nutrition in a spreadsheet
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
+        <div style={{ fontSize: 11.5, color: colors.faint, lineHeight: 1.4 }}>
+          items CSV — bulk-edit names, prices, badges &amp; nutrition in a spreadsheet
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
-          <button onClick={() => run('export-csv', api.exportItemsCsv)} disabled={!!busy} style={secondaryBtn}>
-            {busy === 'export-csv' ? 'exporting…' : 'export CSV'}
+          <button onClick={() => run('export-csv', api.exportItemsCsv)} disabled={!!busy} className="admin-btn" style={button('secondary', { flex: 1 })}>
+            {busy === 'export-csv' ? 'exporting…' : '↓ export CSV'}
           </button>
-          <button onClick={() => csvInputRef.current.click()} disabled={!!busy} style={secondaryBtn}>
-            {busy === 'import-csv' ? 'importing…' : 'import CSV'}
+          <button onClick={() => csvInputRef.current.click()} disabled={!!busy} className="admin-btn" style={button('secondary', { flex: 1 })}>
+            {busy === 'import-csv' ? 'importing…' : '↑ import CSV'}
           </button>
           <input ref={csvInputRef} type="file" accept=".csv,text/csv" onChange={handleCsvFile} style={{ display: 'none' }} />
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <div style={{ fontSize: 11, color: '#8a8f8a' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 12, borderTop: `1px solid ${colors.border}` }}>
+        <div style={{ fontSize: 11.5, color: colors.faint, lineHeight: 1.4 }}>
           full backup JSON — categories, items, build-your-own configs
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
-          <button onClick={() => run('export-json', api.exportMenuJson)} disabled={!!busy} style={secondaryBtn}>
-            {busy === 'export-json' ? 'exporting…' : 'export backup'}
+          <button onClick={() => run('export-json', api.exportMenuJson)} disabled={!!busy} className="admin-btn" style={button('secondary', { flex: 1 })}>
+            {busy === 'export-json' ? 'exporting…' : '↓ export backup'}
           </button>
-          <button onClick={() => jsonInputRef.current.click()} disabled={!!busy} style={secondaryBtn}>
-            {busy === 'import-json' ? 'importing…' : 'restore backup'}
+          <button onClick={() => jsonInputRef.current.click()} disabled={!!busy} className="admin-btn" style={button('secondary', { flex: 1 })}>
+            {busy === 'import-json' ? 'importing…' : '↑ restore backup'}
           </button>
           <input ref={jsonInputRef} type="file" accept=".json,application/json" onChange={handleJsonFile} style={{ display: 'none' }} />
         </div>
       </div>
 
-      {error ? <div style={{ marginTop: 10, fontSize: 12, color: '#b23b3b' }}>{error}</div> : null}
+      {error ? (
+        <div className="admin-fade-in" style={{ marginTop: 12, fontSize: 12, color: colors.danger, background: 'rgba(178,59,59,0.08)', border: '1px solid rgba(178,59,59,0.25)', borderRadius: 8, padding: '8px 10px' }}>
+          {error}
+        </div>
+      ) : null}
 
       {result ? (
-        <div style={{ marginTop: 10, fontSize: 12, background: '#f3f0df', borderRadius: 8, padding: 10 }}>
+        <div className="admin-fade-in" style={{ marginTop: 12, fontSize: 12, background: colors.cream, borderRadius: 10, padding: '10px 12px' }}>
           {result.type === 'csv' ? (
-            <div>created {result.created}, updated {result.updated}{result.errors.length ? `, ${result.errors.length} error(s)` : ''}</div>
+            <div>✓ created {result.created}, updated {result.updated}{result.errors.length ? `, ${result.errors.length} error(s)` : ''}</div>
           ) : (
             <div>
-              categories: +{result.categoriesCreated}/{result.categoriesUpdated} updated · items: +{result.itemsCreated}/{result.itemsUpdated} updated
+              ✓ categories +{result.categoriesCreated}/{result.categoriesUpdated} updated · items +{result.itemsCreated}/{result.itemsUpdated} updated
               {result.errors.length ? `, ${result.errors.length} error(s)` : ''}
             </div>
           )}
           {result.errors.length > 0 && (
-            <ul style={{ margin: '6px 0 0', paddingInlineStart: 18, color: '#b23b3b' }}>
+            <ul style={{ margin: '8px 0 0', paddingInlineStart: 18, color: colors.danger }}>
               {result.errors.slice(0, 10).map((e, i) => (
                 <li key={i}>
                   {'line' in e ? `line ${e.line}` : `${e.category}${e.item ? ' / ' + e.item : ''}`}: {e.message}
@@ -104,5 +109,3 @@ export default function ImportExportPanel({ onImported }) {
     </div>
   );
 }
-
-const secondaryBtn = { background: '#f3f0df', color: '#171a18', border: 'none', borderRadius: 999, padding: '7px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer' };

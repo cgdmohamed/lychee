@@ -16,6 +16,7 @@ export default function ImageSlot({
   const inputRef = useRef(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [hover, setHover] = useState(false);
   const borderRadius = shape === 'rounded' && radius ? `${radius}px` : RADIUS_BY_SHAPE[shape] || '18px';
 
   async function handleFile(e) {
@@ -49,9 +50,22 @@ export default function ImageSlot({
         ...style,
       }}
       onClick={() => editable && !busy && inputRef.current && inputRef.current.click()}
+      onMouseEnter={() => editable && setHover(true)}
+      onMouseLeave={() => setHover(false)}
     >
       {src ? (
-        <img src={src} alt={alt} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <>
+          <img src={src} alt={alt} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          {editable && hover && !busy && (
+            <div style={{
+              position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', color: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 11, fontWeight: 700, letterSpacing: '0.02em',
+            }}>
+              change
+            </div>
+          )}
+        </>
       ) : (
         <span
           style={{
