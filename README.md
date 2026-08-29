@@ -39,6 +39,25 @@ npm run dev               # http://localhost:5173 (proxies /api and /uploads to 
 Default admin login (change immediately, or set `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`
 before seeding): `admin@lycheesaudi.com` / `lychee-admin-2026`.
 
+### Locked out of admin?
+
+The seed script only ever creates the admin account once — it deliberately never touches an
+existing row again, so a password you change from the admin UI survives restarts/redeploys.
+That means if an earlier deploy attempt already wrote an admin row with different credentials
+(easy to hit while you're still dialing in env vars in Coolify), the *current* `SEED_ADMIN_*`
+values won't take effect on their own. Force it with:
+
+```bash
+# local
+npm run reset-admin
+
+# Docker / Coolify — exec into the running container
+docker exec -it <container> node server/src/db/reset-admin.js
+```
+
+This creates the admin if missing, or resets its password to the current `SEED_ADMIN_PASSWORD`
+if it already exists — unlike the seed script, it's meant to be run on demand.
+
 ## Production build (without Docker)
 
 ```bash

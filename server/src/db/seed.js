@@ -169,8 +169,8 @@ function seed() {
     console.log(`Seeded ${MENU.length} categories.`);
   }
 
-  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@lycheesaudi.com';
-  const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'lychee-admin-2026';
+  const adminEmail = (process.env.SEED_ADMIN_EMAIL || 'admin@lycheesaudi.com').trim().toLowerCase();
+  const adminPassword = (process.env.SEED_ADMIN_PASSWORD || 'lychee-admin-2026').trim();
   const existingAdmin = db.prepare('SELECT id FROM admin_users WHERE email = ?').get(adminEmail);
   if (!existingAdmin) {
     const hash = bcrypt.hashSync(adminPassword, 10);

@@ -9,7 +9,8 @@ router.post('/login', (req, res) => {
   const { email, password } = req.body || {};
   if (!email || !password) return res.status(400).json({ error: 'email and password required' });
 
-  const admin = db.prepare('SELECT * FROM admin_users WHERE email = ?').get(email);
+  const normalizedEmail = email.trim().toLowerCase();
+  const admin = db.prepare('SELECT * FROM admin_users WHERE email = ?').get(normalizedEmail);
   if (!admin || !bcrypt.compareSync(password, admin.password_hash)) {
     return res.status(401).json({ error: 'invalid credentials' });
   }
