@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api, setToken } from '../api';
 import ImageSlot from '../components/ImageSlot.jsx';
 import ItemEditor from '../components/admin/ItemEditor.jsx';
+import ImportExportPanel from '../components/admin/ImportExportPanel.jsx';
 
 export default function AdminDashboard() {
   const [categories, setCategories] = useState(null);
@@ -105,6 +106,7 @@ export default function AdminDashboard() {
       <div style={{ display: 'flex', gap: 24, padding: 24, alignItems: 'flex-start' }}>
         {/* Sidebar */}
         <div style={{ width: 260, flexShrink: 0 }}>
+          <ImportExportPanel onImported={load} />
           <div style={{ marginBottom: 20 }}>
             <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8 }}>hero photo</div>
             <ImageSlot src={settings.heroImage} editable onUploaded={uploadHero} placeholder="hero image" shape="rect" style={{ width: '100%', height: 100, borderRadius: 12 }} />

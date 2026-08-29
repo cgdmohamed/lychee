@@ -1,17 +1,27 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '../../api';
 import ImageSlot from '../ImageSlot.jsx';
 import BuildConfigEditor from './BuildConfigEditor.jsx';
 
-export default function ItemEditor({ item, onChanged, onDeleted }) {
-  const [form, setForm] = useState({
+function fieldsFromItem(item) {
+  return {
     nameEn: item.nameEn, nameAr: item.nameAr, descEn: item.descEn || '', descAr: item.descAr || '',
     price: item.price, spicy: item.spicy, isNew: item.isNew, collabEn: item.collabEn || '', collabAr: item.collabAr || '',
     cal: item.nutrition.cal || '', protein: item.nutrition.protein || '', carbs: item.nutrition.carbs || '', fat: item.nutrition.fat || '',
-  });
+  };
+}
+
+export default function ItemEditor({ item, onChanged, onDeleted }) {
+  const [form, setForm] = useState(() => fieldsFromItem(item));
   const [saving, setSaving] = useState(false);
   const [showBuilder, setShowBuilder] = useState(!!item.buildConfig);
   const [buildSaving, setBuildSaving] = useState(false);
+
+  // Re-sync local form state whenever the item changes from outside this component's
+  // own save calls — e.g. a bulk CSV/JSON import updating this item in the background.
+  useEffect(() => {
+    setForm(fieldsFromItem(item));
+  }, [item]);
 
   function set(k, v) {
     setForm(prev => ({ ...prev, [k]: v }));

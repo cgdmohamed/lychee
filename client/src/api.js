@@ -52,18 +52,48 @@ export const api = {
 
   getSettings: () => request('/admin/settings', { auth: true }),
   setSetting: (key, value) => request(`/admin/settings/${key}`, { method: 'PUT', auth: true, body: { value } }),
+
+  exportItemsCsv: () => downloadFile('/admin/export/items.csv', 'lychee-menu-items.csv'),
+  importItemsCsv: file => uploadFile('/admin/import/items.csv', file),
+  exportMenuJson: () => downloadFile('/admin/export/menu.json', 'lychee-menu-backup.json'),
+  importMenuJson: file => uploadFile('/admin/import/menu.json', file),
 };
 
 export async function uploadImage(file) {
+  const data = await uploadFile('/admin/upload', file, 'image');
+  return data.url;
+}
+
+async function uploadFile(path, file, fieldName = 'file') {
   const token = getToken();
   const form = new FormData();
-  form.append('image', file);
-  const res = await fetch('/api/admin/upload', {
+  form.append(fieldName, file);
+  const res = await fetch(`/api${path}`, {
     method: 'POST',
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: form,
   });
   const data = await res.json().catch(() => null);
   if (!res.ok) throw new Error((data && data.error) || 'upload failed');
-  return data.url;
+  return data;
+}
+
+async function downloadFile(path, filename) {
+  const token = getToken();
+  const res = await fetch(`/api${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error((data && data.error) || `download failed (${res.status})`);
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
