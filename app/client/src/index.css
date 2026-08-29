@@ -1,0 +1,13 @@
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: #fffffc;
+  color: #171a18;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: #004438; text-decoration: underline; }
+a:hover { color: #6fa088; }
+::selection { background: #6fa088; color: #fffffc; }
+button { font: inherit; }
+input[type="range"] { accent-color: #6fa088; }
