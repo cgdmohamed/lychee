@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<template id="__bundler_thumbnail" data-bg-color="#fffffc">
+  <svg viewBox="0 0 120 56" xmlns="http://www.w3.org/2000/svg">
+    <rect width="120" height="56" fill="#fffffc"></rect>
+    <circle cx="60" cy="28" r="16" fill="#6fa088"></circle>
+    <path d="M56 20c-2 4-2 12 0 16" stroke="#004438" stroke-width="2" fill="none"></path>
+    <text x="60" y="48" text-anchor="middle" font-family="serif" font-size="8" fill="#004438">lychee</text>
+  </svg>
+</template></head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Domine:wght@500;700&family=Nunito+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="./image-slot.js"></script>
+  <style>
+    body { margin: 0; background: #fffffc; }
+    a { color: #004438; text-decoration: underline; }
+    a:hover { color: #6fa088; }
+    ::selection { background: #6fa088; color: #fffffc; }
+  </style>
+</helmet>
+
+<div style="direction:{{ dir }}; font-family:{{ bodyFont }}; background:#fffffc; color:#171a18; min-height:100vh;">
+
+  <div style="position:sticky; top:0; z-index:20; background:rgba(255,255,252,0.92); backdrop-filter:blur(6px); border-bottom:1px solid rgba(0,0,0,0.08); display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; padding:14px clamp(16px,4vw,28px); min-height:54px;">
+    <img src="assets/logo.svg" alt="lychee's" style="height:20px; width:auto; display:block;" />
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button onClick="{{ toggleLang }}" style="font-family:{{ bodyFont }}; font-weight:700; font-size:13px; letter-spacing:0.06em; text-transform:uppercase; background:#004438; color:#fffffc; border:none; border-radius:999px; padding:10px 18px; min-height:40px; cursor:pointer;">{{ toggleLabel }}</button>
+    </div>
+  </div>
+
+  <div style="position:relative; height:400px; width:100%; overflow:hidden;">
+    <image-slot id="hero-img" shape="rect" placeholder="hero photo" style="position:absolute; inset:0; width:100%; height:100%;"></image-slot>
+    <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.15) 55%, rgba(0,0,0,0.62) 100%); pointer-events:none;"></div>
+    <div style="position:absolute; left:0; right:0; bottom:0; padding:48px 32px; text-align:center; pointer-events:none;">
+      <div style="font-family:{{ bodyFont }}; color:#f2c6a7; font-weight:700; font-size:13px; letter-spacing:0.18em; text-transform:uppercase; margin-bottom:10px;">{{ heroTag }}</div>
+      <div style="font-family:{{ headingFont }}; color:#fffffc; font-weight:700; font-size:clamp(40px,7vw,72px); line-height:1; margin-bottom:20px;">{{ heroTitle }}</div>
+    </div>
+  </div>
+
+  <div style="position:sticky; top:69px; z-index:19; background:#fffffc; border-bottom:1px solid rgba(0,0,0,0.08); overflow-x:auto; white-space:nowrap; padding:20px 16px 22px;">
+    <sc-for list="{{ navItems }}" as="nav" hint-placeholder-count="10">
+      <button onClick="{{ nav.select }}" style="display:inline-flex; flex-direction:column; align-items:center; gap:6px; width:72px; font-family:{{ bodyFont }}; border:none; background:none; padding:0; margin-inline-end:14px; cursor:pointer; vertical-align:top;">
+        <span style="width:60px; height:60px; border-radius:50%; display:block; overflow:hidden; padding:{{ nav.ringPad }}; border:{{ nav.ring }}; box-sizing:border-box;">
+          <image-slot id="{{ nav.imgId }}" shape="circle" placeholder="{{ nav.label }}" style="width:100%; height:100%;"></image-slot>
+        </span>
+        <span style="font-size:11.5px; font-weight:{{ nav.weight }}; line-height:1.25; color:{{ nav.color }}; white-space:normal; text-align:center;">{{ nav.label }}</span>
+      </button>
+    </sc-for>
+  </div>
+
+  <div style="max-width:760px; margin:0 auto; padding:0 24px 80px;">
+
+    <div style="margin-top:40px;">
+      <div style="font-family:{{ headingFont }}; font-weight:700; font-size:clamp(30px,5vw,44px); color:#171a18; text-align:center; margin-bottom:8px;">{{ activeCategory.name }}</div>
+      <div style="display:flex; justify-content:center; gap:9px; margin-bottom:20px;">
+        <sc-for list="{{ dots }}" as="d" hint-placeholder-count="13">
+          <span style="width:6px; height:6px; background:#6fa088; transform:rotate(45deg); display:inline-block;"></span>
+        </sc-for>
+      </div>
+
+      <sc-for list="{{ activeCategory.items }}" as="item" hint-placeholder-count="4">
+        <div style="border-top:1px solid rgba(0,0,0,0.12); padding:18px 0; display:flex; gap:14px; align-items:flex-start; cursor:pointer;">
+          <div onClick="{{ item.openInfo }}" style="width:96px; height:96px; flex-shrink:0; position:relative;">
+            <image-slot id="{{ item.imgId }}" shape="rounded" radius="18" placeholder="{{ item.name }}" style="width:96px; height:96px;"></image-slot>
+            <div style="position:absolute; inset:0; z-index:1;"></div>
+          </div>
+          <div onClick="{{ item.openInfo }}" style="flex:1; min-width:0;">
+            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px;">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span style="font-family:{{ bodyFont }}; font-weight:700; font-size:18px; color:#171a18; text-transform:{{ nameCase }};">{{ item.name }}</span>
+                <sc-if value="{{ item.spicy }}">
+                  <span title="spicy" style="position:relative; width:12px; height:14px; display:inline-block; margin-inline-start:2px;">
+                    <span style="position:absolute; bottom:0; left:0; width:10px; height:10px; border-radius:50% 50% 50% 0; background:#6fa088; transform:rotate(45deg);"></span>
+                    <span style="position:absolute; top:0; right:2px; width:2px; height:6px; background:#6fa088; border-radius:2px; transform:rotate(20deg);"></span>
+                  </span>
+                </sc-if>
+                <sc-if value="{{ item.isNew }}">
+                  <span style="font-family:{{ bodyFont }}; font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#004438; border:1px solid #004438; border-radius:999px; padding:2px 8px;">{{ newLabel }}</span>
+                </sc-if>
+                <sc-if value="{{ item.collab }}">
+                  <span style="font-family:{{ bodyFont }}; font-style:italic; font-size:13px; color:#6fa088;">{{ item.collab }}</span>
+                </sc-if>
+              </div>
+              <div style="white-space:nowrap; display:flex; align-items:center; gap:5px; font-family:{{ bodyFont }}; font-weight:700; font-size:16px; color:#171a18;"><img src="assets/ryal.svg" alt="SAR" style="height:13px; width:auto;" />{{ item.price }}</div>
+            </div>
+            <sc-if value="{{ item.desc }}">
+              <div style="font-family:{{ bodyFont }}; font-size:14px; line-height:1.55; color:#5a5f5a; margin-top:5px;">{{ item.desc }}</div>
+            </sc-if>
+            <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
+              <button onClick="{{ item.openInfo }}" style="font-family:{{ bodyFont }}; font-size:12px; font-weight:700; color:#004438; background:none; border:1px solid rgba(0,68,56,0.3); border-radius:999px; padding:8px 14px; min-height:36px; cursor:pointer;">{{ nutritionCta }}</button>
+              <sc-if value="{{ item.builder }}">
+                <button onClick="{{ item.builder.toggleOpen }}" style="font-family:{{ bodyFont }}; font-size:12px; font-weight:700; color:#fffffc; background:#6fa088; border:none; border-radius:999px; padding:8px 14px; min-height:36px; cursor:pointer;">{{ item.builder.ctaLabel }}</button>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+        <sc-if value="{{ item.builder.open }}">
+          <div style="border:1.5px solid #6fa088; border-radius:20px; padding:20px 20px 22px; margin:4px 0 18px;">
+            <div style="font-family:{{ bodyFont }}; font-weight:700; font-size:13px; color:#004438; margin-bottom:14px;">{{ item.builder.intro }}</div>
+            <sc-for list="{{ item.builder.steps }}" as="step" hint-placeholder-count="6">
+              <div style="margin-bottom:16px;">
+                <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:8px;">
+                  <span style="font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:0.05em; font-family:{{ bodyFont }}; color:#171a18;">{{ step.label }}</span>
+                  <sc-if value="{{ step.note }}"><span style="font-size:11px; color:#8a8f8a; font-family:{{ bodyFont }};">{{ step.note }}</span></sc-if>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                  <sc-for list="{{ step.options }}" as="opt" hint-placeholder-count="4">
+                    <button onClick="{{ opt.toggle }}" style="font-family:{{ bodyFont }}; font-size:13px; font-weight:600; border:1px solid #6fa088; border-radius:999px; padding:9px 14px; cursor:pointer; background:{{ opt.bg }}; color:{{ opt.color }}; min-height:40px;">{{ opt.label }}</button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+            <div style="margin-bottom:6px;">
+              <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:8px;">
+                <span style="font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:0.05em; font-family:{{ bodyFont }}; color:#171a18;">{{ item.builder.amountTitle }}</span>
+                <span style="font-family:{{ bodyFont }}; font-size:12px; font-weight:600; color:#6fa088;">{{ item.builder.amountLabel }}</span>
+              </div>
+              <input type="range" min="1" max="3" step="1" value="{{ item.builder.amount }}" onChange="{{ item.builder.setAmount }}" style="width:100%; accent-color:#6fa088; height:36px;" />
+            </div>
+            <div style="font-family:{{ bodyFont }}; font-size:13px; color:#5a5f5a; margin-top:6px; padding-top:14px; border-top:1px dashed rgba(0,0,0,0.15);"><span style="font-weight:700; color:#171a18;">{{ item.builder.summaryLabel }}</span> {{ item.builder.summary }}</div>
+          </div>
+        </sc-if>
+      </sc-for>
+    </div>
+
+    <div style="margin-top:56px; padding-top:24px; border-top:1px solid rgba(0,0,0,0.12); display:flex; flex-direction:column; align-items:center; gap:16px;">
+      <div style="display:flex; gap:10px;">
+        <a href="https://www.instagram.com/lycheesaudi" target="_blank" rel="noopener" aria-label="Instagram" style="display:flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:50%; background:#004438; color:#fffffc; font-family:{{ bodyFont }}; font-size:11px; font-weight:700; text-decoration:none;">IG</a>
+        <a href="https://www.tiktok.com/@lycheesaudi" target="_blank" rel="noopener" aria-label="TikTok" style="display:flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:50%; background:#004438; color:#fffffc; font-family:{{ bodyFont }}; font-size:11px; font-weight:700; text-decoration:none;">TT</a>
+        <a href="https://www.snapchat.com/add/lycheesaudi" target="_blank" rel="noopener" aria-label="Snapchat" style="display:flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:50%; background:#004438; color:#fffffc; font-family:{{ bodyFont }}; font-size:11px; font-weight:700; text-decoration:none;">SC</a>
+      </div>
+      <div style="width:100%; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+        <div style="font-family:{{ bodyFont }}; font-size:13px; color:#5a5f5a;">{{ vatNote }}</div>
+        <img src="assets/logo.svg" alt="lychee's" style="height:16px; width:auto; opacity:0.6;" />
+      </div>
+    </div>
+  </div>
+
+  <sc-if value="{{ activeItem }}">
+    <div onClick="{{ closeInfo }}" style="position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:50; display:flex; align-items:center; justify-content:center; padding:20px;">
+      <div onClick="{{ stopPropagation }}" style="background:#fffffc; border-radius:20px; max-width:440px; width:100%; max-height:86vh; overflow:auto;">
+        <image-slot id="{{ activeItem.imgId }}-lg" shape="rect" placeholder="{{ activeItem.name }}" style="width:100%; height:220px; border-radius:20px 20px 0 0;"></image-slot>
+        <div style="padding:clamp(20px,6vw,32px);">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px;">
+          <div style="font-family:{{ headingFont }}; font-weight:700; font-size:28px; text-transform:lowercase;">{{ activeItem.name }}</div>
+          <button onClick="{{ closeInfo }}" aria-label="close" style="border:none; background:#f3f0df; color:#171a18; width:30px; height:30px; border-radius:50%; font-size:16px; cursor:pointer; flex-shrink:0;">✕</button>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px; font-family:{{ bodyFont }}; font-weight:700; font-size:16px; color:#6fa088; margin-top:4px;"><img src="assets/ryal.svg" alt="SAR" style="height:14px; width:auto;" />{{ activeItem.price }}</div>
+        <sc-if value="{{ activeItem.desc }}">
+          <div style="font-family:{{ bodyFont }}; font-size:14.5px; line-height:1.6; color:#5a5f5a; margin-top:14px;">{{ activeItem.desc }}</div>
+        </sc-if>
+        <div style="margin-top:22px; border-top:1px solid rgba(0,0,0,0.1); padding-top:18px;">
+          <div style="font-family:{{ bodyFont }}; font-weight:700; font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:#171a18; margin-bottom:12px;">{{ nutritionTitle }}</div>
+          <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
+            <sc-for list="{{ activeItem.nutrition }}" as="fact" hint-placeholder-count="4">
+              <div style="background:#f3f0df; border-radius:12px; padding:12px 8px; text-align:center;">
+                <div style="font-family:{{ bodyFont }}; font-weight:700; font-size:17px; color:#004438;">{{ fact.value }}</div>
+                <div style="font-family:{{ bodyFont }}; font-size:11px; color:#5a5f5a; margin-top:2px;">{{ fact.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-family:{{ bodyFont }}; font-style:italic; font-size:12px; color:#8a8f8a; margin-top:12px;">{{ nutritionNote }}</div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const MENU = [
+  { key:'salads', nameEn:'signature salads', nameAr:'السلطات المميزة', photoBreak:'assets/break-1.jpg', items:[
+    { nameEn:'avocado mexicana salad', nameAr:'أفوكادو مكسيكانا سلاد', price:41,
+      descEn:"lychee's mixed greens, pico de gallo, sweet corn, jalapeño, red beans, avocado, cheddar cheese, crunchy tortilla, light ranch dressing",
+      descAr:'ميكسد جرينس، بيكو دي جالو، ذرة حلوة، هالبينو، فاصوليا حمراء، أفوكادو، جبنة شيدر، تورتيلا مقرمشة، وصوص رانش لايت' },
+    { nameEn:'tuna pasta salad', nameAr:'تونا باستا سلاد', price:33,
+      descEn:"lychee's pasta, tuna salad mix, sweet corn, black olives, dried raisins, colored bell pepper, pickled onion, parsley dressing",
+      descAr:'مكرونة، خليط سلطة التونة، ذرة حلوة، زيتون أسود، زبيب مجفف، فلفل ملون، بصل مخلل، وصوص البقدونس' },
+    { nameEn:'chicken royal salad', nameAr:'تشيكن رويال سلاد', price:39,
+      descEn:"lychee's mixed greens, grilled chicken, cheddar cheese, croutons, cherry tomato, caesar parmesan dressing",
+      descAr:'ميكسد جرينس دجاج مشوي، جبنة شيدر، خبز محمص، طماطم كرزية، وصوص سيزر بارميزان' },
+    { nameEn:'country chicken salad', nameAr:'كنتري تشيكن سلاد', price:39,
+      descEn:"lychee's mixed greens, hot honey chicken, tangy coleslaw, pico de gallo, pickled onion, croutons, light ranch dressing",
+      descAr:'ميكسد جرينس، دجاج هوت هوني، كول سلو، بيكو دي جالو، بصل مخلل، خبز محمص، وصوص رانش لايت' },
+  ]},
+  { key:'bowls', nameEn:'warm bowls', nameAr:'أطباق ورم بول المميزة', photoBreak:'assets/break-5.jpg', items:[
+    { nameEn:'og hot honey chicken', nameAr:'أو جي هوت هوني تشيكن', price:40,
+      descEn:'brown rice, hot honey chicken, pico de gallo, avocado, jalapeno, sweet corn, cheddar cheese, light ranch dressing',
+      descAr:'أرز بني، دجاج هوت هوني، بيكو دي جالو، أفوكادو، ذرة حلوة، جبنة شيدر، وصوص رانش لايت' },
+    { nameEn:'crunchy italian', nameAr:'كرنشي إيتاليان', price:44, isNew:true, collabEn:'by @kitchen_keys', collabAr:'بواسطة @kitchen_keys',
+      descEn:'brown rice, hot honey chicken, roasted red pepper, sweet corn, pickled onion, broccoli, cheddar cheese, pepper jack cheese, crunchy tortilla, caesar parmesan dressing',
+      descAr:'أرز بني، دجاج هوت هوني، فلفل أحمر مشوي، ذرة حلوة، بصل مخلل، بروكلي، جبنة شيدر، جبنة بيبر جاك، تورتيلا مقرمشة، وصوص سيزر بارميزان' },
+    { nameEn:'build your own warm bowl', nameAr:'اصنع ورم بول بنفسك', price:30,
+      buildConfig:[
+        { key:'base', type:'single', labelEn:'base', labelAr:'الأساس', options:[ {en:'brown rice', ar:'أرز بني'} ]},
+        { key:'essentials', type:'multi', labelEn:'essentials', labelAr:'المكونات الأساسية', options:[
+          {en:'pico de gallo', ar:'بيكو دي جالو'}, {en:'sweet corn', ar:'ذرة حلوة'}, {en:'roasted red pepper', ar:'فلفل أحمر مشوي'},
+          {en:'pickled onion', ar:'بصل مخلل'}, {en:'broccoli', ar:'بروكلي'} ]},
+        { key:'premium', type:'multi', labelEn:'premium', labelAr:'المكونات المميزة', options:[
+          {en:'avocado', ar:'أفوكادو'}, {en:'cheddar cheese', ar:'جبنة شيدر'}, {en:'pepper jack cheese', ar:'جبنة بيبر جاك'}, {en:'crunchy tortilla', ar:'تورتيلا مقرمشة'} ]},
+        { key:'protein', type:'single', note:true, labelEn:'protein', labelAr:'البروتين', options:[
+          {en:'hot honey chicken', ar:'دجاج هوت هوني'}, {en:'grilled chicken', ar:'دجاج مشوي'} ]},
+        { key:'dressing', type:'single', labelEn:'dressing', labelAr:'الصوص', options:[
+          {en:'light ranch', ar:'رانش لايت'}, {en:'caesar parmesan', ar:'سيزر بارميزان'} ]},
+        { key:'toppings', type:'multi', note:true, labelEn:'toppings', labelAr:'الإضافات', options:[ {en:'jalapeño', ar:'هالبينو'} ]},
+      ] },
+  ]},
+  { key:'wraps', nameEn:'signature wraps', nameAr:'الرابس المميزة', photoBreak:'assets/break-2.jpg', items:[
+    { nameEn:'chicken melt wrap', nameAr:'تشيكن ميلت راب', price:37, spicy:true,
+      descEn:"lychee's tortilla wrap, grilled chicken, avocado, shredded cheddar cheese, black olives, pico de gallo, jalapenos, colored bell pepper, light ranch dressing",
+      descAr:'تورتيلا، دجاج مشوي، أفوكادو، جبنة شيدر، زيتون أسود، بيكو دي جالو، هالبينو، فلفل ملون، وصوص رانش لايت' },
+    { nameEn:'classic tuna wrap', nameAr:'كلاسيك تونا راب', price:29,
+      descEn:"lychee's tortilla wrap, tuna salad mix, sweet corn, mushroom, black olives, colored bell pepper, caesar parmesan dressing",
+      descAr:'تورتيلا، خليط سلطة التونة، ذرة حلوة، مشروم، زيتون أسود، فلفل ملون، وصوص سيزر بارميزان' },
+    { nameEn:'peri peri chicken wrap', nameAr:'بيري بيري تشيكن راب', price:37, spicy:true,
+      descEn:"lychee's tortilla wrap, chicken, pepper jack cheese, sweet corn, pico de gallo, peri peri sauce",
+      descAr:'تورتيلا، دجاج، جبنة بيبر جاك، ذرة حلوة، بيكو دي جالو، صوص بيري بيري' },
+    { nameEn:'morning wrap', nameAr:'مورنينج راب', price:25,
+      descEn:"lychee's tortilla wrap, eggs, pepper jack cheese, pico de gallo, avocado, light ranch dressing",
+      descAr:'تورتيلا، بيض، جبنة بيبر جاك، بيكو دي جالو، أفوكادو، وصوص رانش لايت' },
+    { nameEn:'spicy tuna wrap', nameAr:'سبايسي تونا راب', price:29, spicy:true,
+      descEn:"lychee's tortilla wrap, tuna salad mix, cheddar cheese, pico de gallo, jalapeno, pesto sauce, hot sauce",
+      descAr:'تورتيلا، خليط سلطة التونة، جبنة شيدر، بيكو دي جالو، هالبينو، صوص بيستو، وصوص حار' },
+    { nameEn:'hot honey chicken wrap', nameAr:'هوت هوني تشيكن راب', price:29,
+      descEn:"lychee's tortilla wrap, hot honey chicken, black olives, pickled onion, roasted red pepper, roasted sweet potatoes, honey mustard",
+      descAr:'تورتيلا، دجاج هوت هوني، زيتون أسود، بصل مخلل، فلفل أحمر مشوي، بطاطا حلوة مشوية، وصوص هوني مسترد' },
+    { nameEn:'build your own wrap', nameAr:'اصنع راب بنفسك', price:29,
+      buildConfig:[
+        { key:'base', type:'single', labelEn:'base', labelAr:'الأساس', options:[ {en:'tortilla wrap', ar:'تورتيلا'} ]},
+        { key:'essentials', type:'multi', labelEn:'essentials', labelAr:'المكونات الأساسية', options:[
+          {en:'pico de gallo', ar:'بيكو دي جالو'}, {en:'sweet corn', ar:'ذرة حلوة'}, {en:'black olives', ar:'زيتون أسود'},
+          {en:'colored bell pepper', ar:'فلفل ملون'}, {en:'pickled onion', ar:'بصل مخلل'} ]},
+        { key:'premium', type:'multi', labelEn:'premium', labelAr:'المكونات المميزة', options:[
+          {en:'avocado', ar:'أفوكادو'}, {en:'cheddar cheese', ar:'جبنة شيدر'}, {en:'pepper jack cheese', ar:'جبنة بيبر جاك'} ]},
+        { key:'protein', type:'single', note:true, labelEn:'protein', labelAr:'البروتين', options:[
+          {en:'grilled chicken', ar:'دجاج مشوي'}, {en:'hot honey chicken', ar:'دجاج هوت هوني'}, {en:'tuna salad mix', ar:'خليط سلطة التونة'}, {en:'eggs', ar:'بيض'} ]},
+        { key:'dressing', type:'single', labelEn:'dressing', labelAr:'الصوص', options:[
+          {en:'light ranch', ar:'رانش لايت'}, {en:'caesar parmesan', ar:'سيزر بارميزان'}, {en:'honey mustard', ar:'صوص هوني مسترد'}, {en:'pesto sauce', ar:'صوص بيستو'} ]},
+        { key:'toppings', type:'multi', note:true, labelEn:'toppings', labelAr:'الإضافات', options:[ {en:'jalapeño', ar:'هالبينو'}, {en:'roasted red pepper', ar:'فلفل أحمر مشوي'} ]},
+      ] },
+  ]},
+  { key:'shakes', nameEn:'protein shakes', nameAr:'بروتين شيكس', photoBreak:'assets/break-6.jpg', items:[
+    { nameEn:'post workout', nameAr:'بوست ووركاوت', price:37 },
+    { nameEn:'ripped berry shake', nameAr:'ريبد بيري شيك', price:37 },
+    { nameEn:'original protein shake', nameAr:'أوريجنال بروتين شيك', price:35 },
+  ]},
+  { key:'dessert', nameEn:'healthy dessert', nameAr:'هيلثي ديزرت', photoBreak:'assets/break-3.jpg', items:[
+    { nameEn:'energy bar', nameAr:'إنرجي بار', price:18, spicy:false },
+    { nameEn:'protein fudge brownie', nameAr:'بروتين فدج براوني', price:14 },
+    { nameEn:'energy bomb', nameAr:'إنرجي بومب', price:10 },
+    { nameEn:'oat bar', nameAr:'أوت بار', price:7 },
+  ]},
+  { key:'granola', nameEn:'homemade granola', nameAr:'هوم ميد جرانولا', photoBreak:null, items:[
+    { nameEn:'original granola 300gm', nameAr:'أوريجنال جرانولا 300 جم', price:22 },
+  ]},
+  { key:'shots', nameEn:'juice shots', nameAr:'جوس شوتس', photoBreak:null, items:[
+    { nameEn:'immunity shot 65ml', nameAr:'إميونيتي شوت 65 مل', price:10 },
+    { nameEn:'wellness shot 65ml', nameAr:'ويلنس شوت 65 مل', price:10 },
+  ]},
+  { key:'fruits', nameEn:'fresh fruits & vegetables', nameAr:'الفواكه والخضروات الطازجة', photoBreak:'assets/break-4.jpg', items:[
+    { nameEn:'pre-cut watermelon 12oz', nameAr:'بطيخ مقطع 12 أونصة', price:10 },
+    { nameEn:'pre-cut cucumber & carrot 12oz', nameAr:'خيار وجزر مقطع 12 أونصة', price:10 },
+    { nameEn:'pre-cut pineapple 12oz', nameAr:'أناناس مقطع 12 أونصة', price:10 },
+    { nameEn:'pre-cut kiwi 12oz', nameAr:'كيوي مقطع 12 أونصة', price:10 },
+  ]},
+  { key:'beverages', nameEn:'other beverages', nameAr:'مشروبات', photoBreak:null, items:[
+    { nameEn:'regular water 550ml', nameAr:'مياه 550 مل', price:2 },
+    { nameEn:'sparkling water 250ml', nameAr:'مياه غازية 250 مل', price:5 },
+    { nameEn:'flavoured sparkling water 250ml', nameAr:'مياه غازية بالنكهة 250 مل', price:5 },
+    { nameEn:'flavoured iced tea 320ml', nameAr:'ايسد تي بالنكهة 320 مل', price:8 },
+  ]},
+];
+
+class Component extends DCLogic {
+  state = { lang: 'en', activeKey: null, activeCat: MENU[0].key, builder: {}, builderOpen: {} };
+
+  toggleBuilderOption(itemKey, stepKey, optKey, type) {
+    this.setState(s => {
+      const builder = { ...s.builder };
+      const itemSel = { ...(builder[itemKey] || {}) };
+      let stepSel = itemSel[stepKey] || [];
+      stepSel = type === 'single'
+        ? (stepSel.includes(optKey) ? [] : [optKey])
+        : (stepSel.includes(optKey) ? stepSel.filter(k => k !== optKey) : [...stepSel, optKey]);
+      itemSel[stepKey] = stepSel;
+      builder[itemKey] = itemSel;
+      return { builder };
+    });
+  }
+
+  setBuilderAmount(itemKey, val) {
+    this.setState(s => {
+      const builder = { ...s.builder };
+      builder[itemKey] = { ...(builder[itemKey] || {}), amount: Number(val) };
+      return { builder };
+    });
+  }
+
+  toggleBuilderOpen(itemKey) {
+    this.setState(s => ({ builderOpen: { ...s.builderOpen, [itemKey]: !s.builderOpen[itemKey] } }));
+  }
+
+  renderVals() {
+    const isAr = this.state.lang === 'ar';
+    const nutritionLabels = isAr
+      ? { cal: 'سعرة', protein: 'بروتين', carbs: 'كارب', fat: 'دهون' }
+      : { cal: 'cal', protein: 'protein', carbs: 'carbs', fat: 'fat' };
+
+    let activeItemResolved = null;
+
+    const navItems = MENU.map(cat => {
+      const active = this.state.activeCat === cat.key;
+      return {
+        label: isAr ? cat.nameAr : cat.nameEn,
+        imgId: 'nav-' + cat.key,
+        ring: active ? '2.5px solid #004438' : '2.5px solid transparent',
+        ringPad: active ? '3px' : '3px',
+        weight: active ? 700 : 600,
+        color: active ? '#004438' : '#171a18',
+        select: () => this.setState({ activeCat: cat.key }),
+      };
+    });
+
+    let activeCategoryResolved = null;
+
+    MENU.forEach(cat => {
+      if (cat.key !== this.state.activeCat) return;
+      activeCategoryResolved = {
+      name: isAr ? cat.nameAr : cat.nameEn,
+      photoBreak: cat.photoBreak,
+      items: cat.items.map((it, idx) => {
+        const itemKey = cat.key + '-' + idx;
+        const selections = this.state.builder[itemKey] || {};
+
+        let builder = null;
+        if (it.buildConfig) {
+          const summaryParts = [];
+          const steps = it.buildConfig.map(step => {
+            const stepSel = selections[step.key] || [];
+            const options = step.options.map(opt => {
+              const selected = stepSel.includes(opt.en);
+              if (selected) summaryParts.push(isAr ? opt.ar : opt.en);
+              return {
+                label: isAr ? opt.ar : opt.en,
+                bg: selected ? '#004438' : '#f3f0df',
+                color: selected ? '#fffffc' : '#171a18',
+                toggle: () => this.toggleBuilderOption(itemKey, step.key, opt.en, step.type),
+              };
+            });
+            return {
+              label: isAr ? step.labelAr : step.labelEn,
+              note: step.note ? (isAr ? 'رسوم إضافية' : 'additional charge') : '',
+              options,
+            };
+          });
+          const amount = selections.amount || 2;
+          const amountNames = isAr ? ['خفيف', 'عادي', 'إضافي'] : ['light', 'regular', 'extra'];
+          const isOpen = !!this.state.builderOpen[itemKey];
+          builder = {
+            intro: isAr ? 'اصنع طبقك بنفسك — اختر من كل خطوة:' : 'build it your way — pick from each step:',
+            summaryLabel: isAr ? 'اختياراتك:' : 'your picks:',
+            summary: summaryParts.length ? summaryParts.join(isAr ? '، ' : ', ') : (isAr ? 'لم يتم الاختيار بعد' : 'nothing selected yet'),
+            steps,
+            amount,
+            amountTitle: isAr ? 'كمية الصوص' : 'dressing amount',
+            amountLabel: amountNames[amount - 1],
+            setAmount: (e) => this.setBuilderAmount(itemKey, e.target.value),
+            open: isOpen,
+            toggleOpen: () => this.toggleBuilderOpen(itemKey),
+            ctaLabel: isOpen ? (isAr ? 'إخفاء الخيارات' : 'hide options') : (isAr ? 'خصص طبقك' : 'customize your bowl'),
+          };
+        }
+
+        const resolved = {
+          name: isAr ? it.nameAr : it.nameEn,
+          desc: isAr ? (it.descAr || '') : (it.descEn || ''),
+          price: it.price,
+          imgId: 'img-' + itemKey,
+          spicy: !!it.spicy,
+          isNew: !!it.isNew,
+          collab: isAr ? (it.collabAr || '') : (it.collabEn || ''),
+          builder,
+          nutrition: [
+            { label: nutritionLabels.cal, value: it.nutrition ? it.nutrition.cal : '—' },
+            { label: nutritionLabels.protein, value: it.nutrition ? it.nutrition.protein : '—' },
+            { label: nutritionLabels.carbs, value: it.nutrition ? it.nutrition.carbs : '—' },
+            { label: nutritionLabels.fat, value: it.nutrition ? it.nutrition.fat : '—' },
+          ],
+          openInfo: () => this.setState({ activeKey: itemKey }),
+        };
+        if (this.state.activeKey === itemKey) activeItemResolved = resolved;
+        return resolved;
+      }),
+      };
+    });
+
+    return {
+      activeCategory: activeCategoryResolved,
+      activeItem: activeItemResolved,
+      closeInfo: () => this.setState({ activeKey: null }),
+      stopPropagation: (e) => e.stopPropagation(),
+      nutritionCta: isAr ? 'الحقائق الغذائية' : 'nutrition facts',
+      nutritionTitle: isAr ? 'حقائق غذائية تقريبية' : 'approximate nutrition facts',
+      nutritionNote: isAr ? 'القيم تقديرية ويمكن أن تختلف — اسأل فريقنا للتفاصيل الدقيقة.' : 'values are estimates and may vary — ask our team for exact details.',
+      dir: isAr ? 'rtl' : 'ltr',
+      headingFont: isAr ? "'Cairo', sans-serif" : "'Domine', serif",
+      bodyFont: isAr ? "'Cairo', sans-serif" : "'Nunito Sans', sans-serif",
+      nameCase: 'lowercase',
+      toggleLabel: isAr ? 'English' : 'عربي',
+      heroTag: isAr ? 'اجعل الصحة أسلوب حياة منذ 2012' : 'making healthy a lifestyle since 2012',
+      heroTitle: isAr ? 'القائمة' : 'the menu',
+      newLabel: isAr ? 'جديد' : 'new',
+      vatNote: isAr ? '*جميع الأسعار شاملة ضريبة القيمة المضافة' : '*all prices include VAT',
+      dots: Array.from({ length: 13 }),
+      navItems,
+      toggleLang: () => this.setState(s => ({ lang: s.lang === 'en' ? 'ar' : 'en' })),
+    };
+  }
+}
+
+</script>
+</body>
+</html>
