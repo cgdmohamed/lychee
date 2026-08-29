@@ -96,14 +96,18 @@ A container healthcheck hits `/api/health`.
 ### Deploying on Coolify
 
 1. New Resource → **Docker Compose**, point it at this repo (repo root — no Base Directory needed).
-2. Coolify will pick up `docker-compose.yaml` and `Dockerfile` as-is.
+2. Coolify will pick up `docker-compose.yaml` and `Dockerfile` as-is. (It must be `.yaml`, not
+   `.yml` — Coolify's compose file detection doesn't reliably recognize the `.yml` extension.)
 3. In the app's Environment Variables, set `JWT_SECRET` and `SEED_ADMIN_PASSWORD` (both are
    required — the container refuses to start without them) and optionally `SEED_ADMIN_EMAIL`.
 4. Add **Persistent Storage** mounts for `/app/server/data` and `/app/server/uploads` if Coolify
    doesn't already pick up the named volumes from the compose file, so uploads/DB survive
    redeploys.
-5. Set the domain/proxy to point at container port `4000` (the `ports` mapping in
-   `docker-compose.yaml` also works for a plain `docker compose up` outside Coolify).
+5. Domain/HTTPS is automatic: the compose file declares `SERVICE_FQDN_APP_4000` (Coolify's
+   "magic" env var convention), which Coolify replaces with a real generated domain and wires
+   through its built-in Traefik proxy to port 4000 — enable/replace it with your own domain
+   under the app's General settings. (Plain `docker compose up` outside Coolify ignores that
+   var and just uses the regular `ports` mapping instead.)
 6. Deploy. First boot runs the seed script automatically.
 
 ## Data model

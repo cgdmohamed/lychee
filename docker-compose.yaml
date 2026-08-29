@@ -12,6 +12,10 @@ services:
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET to a long random string}
       SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@lycheesaudi.com}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?set SEED_ADMIN_PASSWORD for the initial admin login}
+      # Coolify-only: a "magic" variable it recognizes and auto-fills with a real
+      # generated domain, wiring up its Traefik proxy + HTTPS to port 4000 on deploy.
+      # Ignored (stays literally "/") by plain `docker compose up` outside Coolify.
+      SERVICE_FQDN_APP_4000: /
     volumes:
       - lychee-data:/app/server/data
       - lychee-uploads:/app/server/uploads
