@@ -30,7 +30,7 @@ export default function MenuPage() {
       .catch(err => setError(err.message));
   }, []);
 
-  const strings = useMemo(() => getStrings(lang), [lang]);
+  const strings = useMemo(() => getStrings(lang, menu?.settings), [lang, menu?.settings]);
 
   if (error) {
     return <div style={{ padding: 40, fontFamily: 'sans-serif', color: '#b23b3b' }}>Failed to load menu: {error}</div>;

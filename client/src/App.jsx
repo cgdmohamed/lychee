@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import MenuPage from './pages/MenuPage.jsx';
 import AdminLogin from './pages/AdminLogin.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
+import AdminSiteText from './pages/AdminSiteText.jsx';
 import { getToken } from './api';
 
 function RequireAuth({ children }) {
@@ -16,10 +17,18 @@ export default function App() {
         <Route path="/" element={<MenuPage />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route
-          path="/admin/*"
+          path="/admin"
           element={
             <RequireAuth>
               <AdminDashboard />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/text"
+          element={
+            <RequireAuth>
+              <AdminSiteText />
             </RequireAuth>
           }
         />

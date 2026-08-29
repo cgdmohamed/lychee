@@ -24,6 +24,11 @@ A bilingual (EN/AR) digital restaurant menu with an admin CMS.
   circular scrollable category nav, item list with popup (photo + nutrition facts grid),
   interactive build-your-own panel (step chips + dressing-amount slider), footer with social links.
   Full RTL layout swap when Arabic is active.
+- **Site text editor** (`/admin/text`) — every bilingual UI string on the public menu that
+  isn't menu-item data (hero tagline & heading, nutrition panel copy, badge/button labels,
+  build-your-own copy, the VAT note) is editable per-language, backed by the `settings`
+  table. Registry lives in `client/src/textFields.js`; leaving a field blank falls back to
+  its shipped default.
 
 ## Running locally
 
