@@ -87,7 +87,7 @@ export default function MenuPage() {
         />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.15) 55%, rgba(0,0,0,0.62) 100%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '48px 32px', textAlign: 'center', pointerEvents: 'none' }}>
-          <div style={{ fontFamily: strings.bodyFont, color: '#f2c6a7', fontWeight: 700, fontSize: 13, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10 }}>
+          <div style={{ fontFamily: strings.bodyFont, color: '#f2c6a7', fontWeight: 700, fontSize: 13, letterSpacing: '0.18em', marginBottom: 10 }}>
             {strings.heroTag}
           </div>
           <div style={{ fontFamily: strings.headingFont, color: '#fffffc', fontWeight: 700, fontSize: 'clamp(40px,7vw,72px)', lineHeight: 1, marginBottom: 20 }}>
