@@ -4,11 +4,12 @@ import { getStrings } from '../i18n';
 import ImageSlot from '../components/ImageSlot.jsx';
 import ItemRow from '../components/ItemRow.jsx';
 import ItemModal from '../components/ItemModal.jsx';
+import { InstagramIcon, TikTokIcon, SnapchatIcon } from '../components/SocialIcons.jsx';
 
 const SOCIAL_LINKS = [
-  { label: 'IG', name: 'Instagram', href: 'https://www.instagram.com/lycheesaudi' },
-  { label: 'TT', name: 'TikTok', href: 'https://www.tiktok.com/@lycheesaudi' },
-  { label: 'SC', name: 'Snapchat', href: 'https://www.snapchat.com/add/lycheesaudi' },
+  { Icon: InstagramIcon, name: 'Instagram', href: 'https://www.instagram.com/lycheesaudi' },
+  { Icon: TikTokIcon, name: 'TikTok', href: 'https://www.tiktok.com/@lycheesaudi' },
+  { Icon: SnapchatIcon, name: 'Snapchat', href: 'https://www.snapchat.com/add/lycheesaudi' },
 ];
 
 export default function MenuPage() {
@@ -167,10 +168,10 @@ export default function MenuPage() {
                 aria-label={s.name}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', width: 38, height: 38, borderRadius: '50%',
-                  background: '#004438', color: '#fffffc', fontFamily: strings.bodyFont, fontSize: 11, fontWeight: 700, textDecoration: 'none',
+                  background: '#004438', color: '#fffffc', textDecoration: 'none',
                 }}
               >
-                {s.label}
+                <s.Icon size={18} />
               </a>
             ))}
           </div>
