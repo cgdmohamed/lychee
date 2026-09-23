@@ -14,7 +14,10 @@ A bilingual (EN/AR) digital restaurant menu with an admin CMS.
   from the original menu data).
 - **Admin CMS** (`/admin`, JWT-protected) — create/edit/delete categories and items, edit
   nutrition facts, toggle spicy/new badges, edit build-your-own steps & options, upload photos
-  (category icons, item thumbnails, hero image) to local disk storage.
+  (category icons, item thumbnails, hero image) to local disk storage. Every upload is
+  auto-compressed and re-encoded to WebP server-side (capped at 1920px on the longest side) —
+  a typical multi-MB phone photo lands well under 100KB with no visible quality loss. Applies
+  to new uploads only; files already on disk are never touched.
 - **Bulk import / export** (in the admin dashboard) — download all items as a CSV for
   spreadsheet editing (names, descriptions, prices, badges, nutrition) and re-import to
   upsert by id or by category+name; or export/restore a full JSON backup (categories, items,
