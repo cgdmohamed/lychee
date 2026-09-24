@@ -57,6 +57,8 @@ export const api = {
   importItemsCsv: file => uploadFile('/admin/import/items.csv', file),
   exportMenuJson: () => downloadFile('/admin/export/menu.json', 'lychee-menu-backup.json'),
   importMenuJson: file => uploadFile('/admin/import/menu.json', file),
+
+  optimizeImages: () => request('/admin/optimize-images', { method: 'POST', auth: true }),
 };
 
 export async function uploadImage(file) {

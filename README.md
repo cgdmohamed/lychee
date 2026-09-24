@@ -17,7 +17,11 @@ A bilingual (EN/AR) digital restaurant menu with an admin CMS.
   (category icons, item thumbnails, hero image) to local disk storage. Every upload is
   auto-compressed and re-encoded to WebP server-side (capped at 1920px on the longest side) —
   a typical multi-MB phone photo lands well under 100KB with no visible quality loss. Applies
-  to new uploads only; files already on disk are never touched.
+  to new uploads only; files already on disk are never touched. An "optimize images" button
+  in the sidebar retroactively compresses any pre-existing (non-WebP) photos in place —
+  repointing the DB to the new file and removing the old one only once that succeeds, so a
+  failure partway through can't leave a broken reference; safe to run repeatedly since
+  already-optimized images are skipped.
 - **Bulk import / export** (in the admin dashboard) — download all items as a CSV for
   spreadsheet editing (names, descriptions, prices, badges, nutrition) and re-import to
   upsert by id or by category+name; or export/restore a full JSON backup (categories, items,

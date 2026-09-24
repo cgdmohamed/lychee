@@ -1,9 +1,14 @@
 import { Router } from 'express';
 import multer from 'multer';
+import path from 'node:path';
+import fs from 'node:fs';
+import crypto from 'node:crypto';
 import { db } from '../db/index.js';
 import { requireAuth } from '../middleware/auth.js';
 import { serializeCategory, serializeItem, getFullMenu } from '../db/serialize.js';
 import { toCSV, parseCSV, parseBoolCell } from '../lib/csv.js';
+import { compressToWebp } from '../lib/image.js';
+import { uploadsDir } from './upload.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -439,6 +444,72 @@ router.post('/import/menu.json', fileUpload.single('file'), (req, res) => {
     });
   });
   tx();
+
+  res.json(result);
+});
+
+// ---- Optimize existing images (compress + convert to WebP) ----
+//
+// The upload endpoint compresses new uploads automatically, but images uploaded
+// before that existed are still sitting on disk as full-size JPEGs/PNGs. This
+// reprocesses those in place: only files actually referenced by an item, category,
+// or the hero setting are touched; already-WebP files are skipped (safe to re-run);
+// the old file is only deleted after the new one is written *and* every DB row
+// pointing at it has been repointed, so a failure partway through never leaves a
+// dangling reference or data loss. One bad file doesn't abort the rest of the batch.
+router.post('/optimize-images', async (req, res) => {
+  const itemRefs = db.prepare("SELECT id, image AS url FROM items WHERE image IS NOT NULL AND image != ''").all()
+    .map(r => ({ table: 'items', id: r.id, url: r.url }));
+  const categoryRefs = db.prepare("SELECT id, icon_image AS url FROM categories WHERE icon_image IS NOT NULL AND icon_image != ''").all()
+    .map(r => ({ table: 'categories', id: r.id, url: r.url }));
+  const heroSetting = db.prepare("SELECT value FROM settings WHERE key = 'heroImage'").get();
+  const settingRefs = heroSetting && heroSetting.value ? [{ table: 'settings', id: 'heroImage', url: heroSetting.value }] : [];
+
+  const byUrl = new Map();
+  for (const ref of [...itemRefs, ...categoryRefs, ...settingRefs]) {
+    if (!byUrl.has(ref.url)) byUrl.set(ref.url, []);
+    byUrl.get(ref.url).push(ref);
+  }
+
+  const updateItem = db.prepare('UPDATE items SET image = ? WHERE id = ?');
+  const updateCategory = db.prepare('UPDATE categories SET icon_image = ? WHERE id = ?');
+  const updateSetting = db.prepare('UPDATE settings SET value = ? WHERE key = ?');
+
+  const result = { optimized: 0, alreadyOptimized: 0, skippedExternal: 0, bytesBefore: 0, bytesAfter: 0, errors: [] };
+
+  for (const [url, refs] of byUrl) {
+    if (!url.startsWith('/uploads/')) { result.skippedExternal++; continue; }
+    const filename = url.slice('/uploads/'.length);
+    if (path.extname(filename).toLowerCase() === '.webp') { result.alreadyOptimized++; continue; }
+
+    try {
+      const filePath = path.join(uploadsDir, filename);
+      const originalBuffer = await fs.promises.readFile(filePath);
+      const sourceFormat = path.extname(filename).toLowerCase() === '.gif' ? 'gif' : undefined;
+      const optimizedBuffer = await compressToWebp(originalBuffer, sourceFormat);
+
+      const newFilename = `${crypto.randomUUID()}.webp`;
+      await fs.promises.writeFile(path.join(uploadsDir, newFilename), optimizedBuffer);
+      const newUrl = `/uploads/${newFilename}`;
+
+      const tx = db.transaction(() => {
+        for (const ref of refs) {
+          if (ref.table === 'items') updateItem.run(newUrl, ref.id);
+          else if (ref.table === 'categories') updateCategory.run(newUrl, ref.id);
+          else if (ref.table === 'settings') updateSetting.run(newUrl, ref.id);
+        }
+      });
+      tx();
+
+      await fs.promises.unlink(filePath).catch(() => {});
+
+      result.optimized++;
+      result.bytesBefore += originalBuffer.length;
+      result.bytesAfter += optimizedBuffer.length;
+    } catch (err) {
+      result.errors.push({ url, message: err.message });
+    }
+  }
 
   res.json(result);
 });

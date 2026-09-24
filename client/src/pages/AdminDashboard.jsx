@@ -5,6 +5,7 @@ import { api } from '../api';
 import ImageSlot from '../components/ImageSlot.jsx';
 import ItemEditor from '../components/admin/ItemEditor.jsx';
 import ImportExportPanel from '../components/admin/ImportExportPanel.jsx';
+import ImageOptimizePanel from '../components/admin/ImageOptimizePanel.jsx';
 import { colors, font, headingFont, field, label, fieldGroup, button, card, sectionTitle } from '../admin/theme';
 
 export default function AdminDashboard() {
@@ -157,6 +158,7 @@ export default function AdminDashboard() {
         {/* Sidebar */}
         <div style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <ImportExportPanel onImported={load} />
+          <ImageOptimizePanel onOptimized={load} />
 
           <div style={card()} className="admin-card">
             <div style={sectionTitle()}>hero photo</div>
