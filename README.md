@@ -13,7 +13,9 @@ A bilingual (EN/AR) digital restaurant menu with an admin CMS.
   badges, nutrition facts, and build-your-own configs, all bilingual, served from SQLite (seeded
   from the original menu data).
 - **Admin CMS** (`/admin`, JWT-protected) — create/edit/delete categories and items, edit
-  nutrition facts, toggle spicy/new badges, edit build-your-own steps & options, upload photos
+  nutrition facts, toggle spicy/new badges, toggle whether an item's nutrition facts are shown
+  to customers at all (per item — useful for items where the values aren't meaningful or
+  haven't been measured yet; enabled by default), edit build-your-own steps & options, upload photos
   (category icons, item thumbnails, hero image) to local disk storage. Every upload is
   auto-compressed and re-encoded to WebP server-side (capped at 1920px on the longest side) —
   a typical multi-MB phone photo lands well under 100KB with no visible quality loss. Applies

@@ -78,22 +78,24 @@ export default function ItemModal({ item, lang, strings, whatsapp, onClose }) {
               {desc}
             </div>
           ) : null}
-          <div style={{ marginTop: 22, borderTop: '1px solid rgba(0,0,0,0.1)', paddingTop: 18 }}>
-            <div style={{ fontFamily: strings.bodyFont, fontWeight: 700, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#171a18', marginBottom: 12 }}>
-              {strings.nutritionTitle}
+          {item.nutritionEnabled ? (
+            <div style={{ marginTop: 22, borderTop: '1px solid rgba(0,0,0,0.1)', paddingTop: 18 }}>
+              <div style={{ fontFamily: strings.bodyFont, fontWeight: 700, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#171a18', marginBottom: 12 }}>
+                {strings.nutritionTitle}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
+                {nutritionFacts.map(fact => (
+                  <div key={fact.label} style={{ background: '#f3f0df', borderRadius: 12, padding: '12px 8px', textAlign: 'center' }}>
+                    <div style={{ fontFamily: strings.bodyFont, fontWeight: 700, fontSize: 17, color: 'var(--brand-primary)' }}>{fact.value}</div>
+                    <div style={{ fontFamily: strings.bodyFont, fontSize: 11, color: '#5a5f5a', marginTop: 2 }}>{fact.label}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontFamily: strings.bodyFont, fontStyle: 'italic', fontSize: 12, color: '#8a8f8a', marginTop: 12 }}>
+                {strings.nutritionNote}
+              </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
-              {nutritionFacts.map(fact => (
-                <div key={fact.label} style={{ background: '#f3f0df', borderRadius: 12, padding: '12px 8px', textAlign: 'center' }}>
-                  <div style={{ fontFamily: strings.bodyFont, fontWeight: 700, fontSize: 17, color: 'var(--brand-primary)' }}>{fact.value}</div>
-                  <div style={{ fontFamily: strings.bodyFont, fontSize: 11, color: '#5a5f5a', marginTop: 2 }}>{fact.label}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{ fontFamily: strings.bodyFont, fontStyle: 'italic', fontSize: 12, color: '#8a8f8a', marginTop: 12 }}>
-              {strings.nutritionNote}
-            </div>
-          </div>
+          ) : null}
         </div>
       </div>
     </div>

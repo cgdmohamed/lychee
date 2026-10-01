@@ -76,7 +76,7 @@ router.delete('/categories/:id', (req, res) => {
 // ---- Items ----
 
 router.post('/items', (req, res) => {
-  const { categoryId, nameEn, nameAr, descEn, descAr, price, spicy, isNew, collabEn, collabAr } = req.body || {};
+  const { categoryId, nameEn, nameAr, descEn, descAr, price, spicy, isNew, collabEn, collabAr, nutritionEnabled } = req.body || {};
   if (!categoryId || !nameEn || !nameAr || price === undefined) {
     return res.status(400).json({ error: 'categoryId, nameEn, nameAr, price required' });
   }
@@ -89,9 +89,12 @@ router.post('/items', (req, res) => {
 
   const sortOrder = nextSortOrder('items', 'category_id', categoryId);
   const result = db.prepare(
-    `INSERT INTO items (category_id, name_en, name_ar, desc_en, desc_ar, price, spicy, is_new, collab_en, collab_ar, sort_order)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(categoryId, nameEn, nameAr, descEn || null, descAr || null, numericPrice, spicy ? 1 : 0, isNew ? 1 : 0, collabEn || null, collabAr || null, sortOrder);
+    `INSERT INTO items (category_id, name_en, name_ar, desc_en, desc_ar, price, spicy, is_new, collab_en, collab_ar, nutrition_enabled, sort_order)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    categoryId, nameEn, nameAr, descEn || null, descAr || null, numericPrice, spicy ? 1 : 0, isNew ? 1 : 0,
+    collabEn || null, collabAr || null, nutritionEnabled === false ? 0 : 1, sortOrder
+  );
 
   res.status(201).json(serializeItem(db.prepare('SELECT * FROM items WHERE id = ?').get(result.lastInsertRowid)));
 });
@@ -108,7 +111,7 @@ router.put('/items/:id', (req, res) => {
   }
   db.prepare(
     `UPDATE items SET name_en=?, name_ar=?, desc_en=?, desc_ar=?, price=?, image=?, spicy=?, is_new=?,
-       collab_en=?, collab_ar=?, cal=?, protein=?, carbs=?, fat=? WHERE id=?`
+       collab_en=?, collab_ar=?, cal=?, protein=?, carbs=?, fat=?, nutrition_enabled=? WHERE id=?`
   ).run(
     b.nameEn ?? item.name_en,
     b.nameAr ?? item.name_ar,
@@ -124,6 +127,7 @@ router.put('/items/:id', (req, res) => {
     b.protein !== undefined ? b.protein : item.protein,
     b.carbs !== undefined ? b.carbs : item.carbs,
     b.fat !== undefined ? b.fat : item.fat,
+    b.nutritionEnabled !== undefined ? (b.nutritionEnabled ? 1 : 0) : item.nutrition_enabled,
     item.id
   );
   res.json(serializeItem(db.prepare('SELECT * FROM items WHERE id = ?').get(item.id)));
@@ -203,7 +207,7 @@ router.put('/settings/:key', (req, res) => {
 
 const ITEM_CSV_COLUMNS = [
   'id', 'category_key', 'name_en', 'name_ar', 'desc_en', 'desc_ar', 'price',
-  'spicy', 'is_new', 'collab_en', 'collab_ar', 'cal', 'protein', 'carbs', 'fat', 'image',
+  'spicy', 'is_new', 'collab_en', 'collab_ar', 'nutrition_enabled', 'cal', 'protein', 'carbs', 'fat', 'image',
 ];
 
 router.get('/export/items.csv', (req, res) => {
@@ -222,6 +226,7 @@ router.get('/export/items.csv', (req, res) => {
         is_new: item.isNew ? 'yes' : 'no',
         collab_en: item.collabEn || '',
         collab_ar: item.collabAr || '',
+        nutrition_enabled: item.nutritionEnabled ? 'yes' : 'no',
         cal: item.nutrition.cal || '',
         protein: item.nutrition.protein || '',
         carbs: item.nutrition.carbs || '',
@@ -251,12 +256,12 @@ router.post('/import/items.csv', fileUpload.single('file'), (req, res) => {
 
   const updateStmt = db.prepare(
     `UPDATE items SET category_id=@categoryId, name_en=@nameEn, name_ar=@nameAr, desc_en=@descEn, desc_ar=@descAr,
-       price=@price, spicy=@spicy, is_new=@isNew, collab_en=@collabEn, collab_ar=@collabAr,
+       price=@price, spicy=@spicy, is_new=@isNew, collab_en=@collabEn, collab_ar=@collabAr, nutrition_enabled=@nutritionEnabled,
        cal=@cal, protein=@protein, carbs=@carbs, fat=@fat, image=@image WHERE id=@id`
   );
   const insertStmt = db.prepare(
-    `INSERT INTO items (category_id, name_en, name_ar, desc_en, desc_ar, price, spicy, is_new, collab_en, collab_ar, cal, protein, carbs, fat, image, sort_order)
-     VALUES (@categoryId,@nameEn,@nameAr,@descEn,@descAr,@price,@spicy,@isNew,@collabEn,@collabAr,@cal,@protein,@carbs,@fat,@image,@sortOrder)`
+    `INSERT INTO items (category_id, name_en, name_ar, desc_en, desc_ar, price, spicy, is_new, collab_en, collab_ar, nutrition_enabled, cal, protein, carbs, fat, image, sort_order)
+     VALUES (@categoryId,@nameEn,@nameAr,@descEn,@descAr,@price,@spicy,@isNew,@collabEn,@collabAr,@nutritionEnabled,@cal,@protein,@carbs,@fat,@image,@sortOrder)`
   );
   const findByCategoryAndName = db.prepare('SELECT id FROM items WHERE category_id = ? AND name_en = ?');
   const findById = db.prepare('SELECT id FROM items WHERE id = ?');
@@ -297,6 +302,10 @@ router.post('/import/items.csv', fileUpload.single('file'), (req, res) => {
         isNew: parseBoolCell(row.is_new) ? 1 : 0,
         collabEn: row.collab_en || null,
         collabAr: row.collab_ar || null,
+        // Blank cell or a column absent entirely (e.g. re-importing a CSV exported
+        // before this field existed) defaults to enabled rather than silently
+        // hiding nutrition facts; write "no" explicitly to disable.
+        nutritionEnabled: (row.nutrition_enabled || '').trim() === '' ? 1 : (parseBoolCell(row.nutrition_enabled) ? 1 : 0),
         cal: row.cal || null,
         protein: row.protein || null,
         carbs: row.carbs || null,
@@ -405,6 +414,7 @@ router.post('/import/menu.json', fileUpload.single('file'), (req, res) => {
           isNew: it.isNew ? 1 : 0,
           collabEn: it.collabEn ?? null,
           collabAr: it.collabAr ?? null,
+          nutritionEnabled: it.nutritionEnabled !== undefined ? (it.nutritionEnabled ? 1 : 0) : 1,
           cal: it.nutrition ? (it.nutrition.cal ?? null) : null,
           protein: it.nutrition ? (it.nutrition.protein ?? null) : null,
           carbs: it.nutrition ? (it.nutrition.carbs ?? null) : null,
@@ -415,7 +425,7 @@ router.post('/import/menu.json', fileUpload.single('file'), (req, res) => {
         if (itemRow) {
           db.prepare(
             `UPDATE items SET category_id=@categoryId, name_en=@nameEn, name_ar=@nameAr, desc_en=@descEn, desc_ar=@descAr,
-               price=@price, image=@image, spicy=@spicy, is_new=@isNew, collab_en=@collabEn, collab_ar=@collabAr,
+               price=@price, image=@image, spicy=@spicy, is_new=@isNew, collab_en=@collabEn, collab_ar=@collabAr, nutrition_enabled=@nutritionEnabled,
                cal=@cal, protein=@protein, carbs=@carbs, fat=@fat WHERE id=@id`
           ).run({ ...fields, id: itemRow.id });
           itemId = itemRow.id;
@@ -423,8 +433,8 @@ router.post('/import/menu.json', fileUpload.single('file'), (req, res) => {
         } else {
           const sortOrder = nextSortOrder('items', 'category_id', categoryId);
           const r = db.prepare(
-            `INSERT INTO items (category_id,name_en,name_ar,desc_en,desc_ar,price,image,spicy,is_new,collab_en,collab_ar,cal,protein,carbs,fat,sort_order)
-             VALUES (@categoryId,@nameEn,@nameAr,@descEn,@descAr,@price,@image,@spicy,@isNew,@collabEn,@collabAr,@cal,@protein,@carbs,@fat,@sortOrder)`
+            `INSERT INTO items (category_id,name_en,name_ar,desc_en,desc_ar,price,image,spicy,is_new,collab_en,collab_ar,nutrition_enabled,cal,protein,carbs,fat,sort_order)
+             VALUES (@categoryId,@nameEn,@nameAr,@descEn,@descAr,@price,@image,@spicy,@isNew,@collabEn,@collabAr,@nutritionEnabled,@cal,@protein,@carbs,@fat,@sortOrder)`
           ).run({ ...fields, sortOrder });
           itemId = r.lastInsertRowid;
           result.itemsCreated++;

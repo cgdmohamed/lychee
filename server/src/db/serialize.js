@@ -33,6 +33,7 @@ export function serializeItem(item) {
     isNew: !!item.is_new,
     collabEn: item.collab_en,
     collabAr: item.collab_ar,
+    nutritionEnabled: !!item.nutrition_enabled,
     nutrition: {
       cal: item.cal,
       protein: item.protein,

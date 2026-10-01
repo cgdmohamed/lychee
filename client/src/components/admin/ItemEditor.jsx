@@ -8,6 +8,7 @@ function fieldsFromItem(item) {
   return {
     nameEn: item.nameEn, nameAr: item.nameAr, descEn: item.descEn || '', descAr: item.descAr || '',
     price: item.price, spicy: item.spicy, isNew: item.isNew, collabEn: item.collabEn || '', collabAr: item.collabAr || '',
+    nutritionEnabled: item.nutritionEnabled,
     cal: item.nutrition.cal || '', protein: item.nutrition.protein || '', carbs: item.nutrition.carbs || '', fat: item.nutrition.fat || '',
   };
 }
@@ -95,6 +96,7 @@ export default function ItemEditor({ item, onChanged, onDeleted, onMoveUp, onMov
   if (item.spicy) badges.push('spicy');
   if (item.isNew) badges.push('new');
   if (item.buildConfig) badges.push('build-your-own');
+  if (!item.nutritionEnabled) badges.push('nutrition hidden');
 
   return (
     <div style={{ background: '#fff', border: `1px solid ${colors.border}`, borderRadius: 14, overflow: 'hidden' }} className="admin-card">
@@ -176,7 +178,12 @@ export default function ItemEditor({ item, onChanged, onDeleted, onMoveUp, onMov
             </div>
 
             <div style={fieldGroup({ marginBottom: 12 })}>
-              <label style={label()}>nutrition (approx., per serving)</label>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                <label style={{ ...label(), marginBottom: 0 }}>nutrition (approx., per serving)</label>
+                <Toggle active={form.nutritionEnabled} onClick={() => set('nutritionEnabled', !form.nutritionEnabled)}>
+                  {form.nutritionEnabled ? 'shown on menu' : 'hidden on menu'}
+                </Toggle>
+              </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 {['cal', 'protein', 'carbs', 'fat'].map(k => (
                   <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

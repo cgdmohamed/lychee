@@ -48,12 +48,14 @@ export default function ItemRow({ item, lang, strings, onOpenInfo, builderOpen, 
             <div style={{ fontFamily: strings.bodyFont, fontSize: 14, lineHeight: 1.55, color: '#5a5f5a', marginTop: 5 }}>{desc}</div>
           ) : null}
           <div style={{ display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
-            <button
-              onClick={e => { e.stopPropagation(); onOpenInfo(); }}
-              style={{ fontFamily: strings.bodyFont, fontSize: 12, fontWeight: 700, color: 'var(--brand-primary)', background: 'none', border: '1px solid var(--brand-primary)', borderRadius: 999, padding: '8px 14px', minHeight: 36, cursor: 'pointer' }}
-            >
-              {strings.nutritionCta}
-            </button>
+            {item.nutritionEnabled ? (
+              <button
+                onClick={e => { e.stopPropagation(); onOpenInfo(); }}
+                style={{ fontFamily: strings.bodyFont, fontSize: 12, fontWeight: 700, color: 'var(--brand-primary)', background: 'none', border: '1px solid var(--brand-primary)', borderRadius: 999, padding: '8px 14px', minHeight: 36, cursor: 'pointer' }}
+              >
+                {strings.nutritionCta}
+              </button>
+            ) : null}
             {hasBuilder ? (
               <button
                 onClick={e => { e.stopPropagation(); onToggleBuilderOpen(); }}
