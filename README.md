@@ -53,10 +53,15 @@ A bilingual (EN/AR) digital restaurant menu with an admin CMS.
   logged as its own analytics event and the tag is stripped from the URL on load, so QR
   traffic is distinguishable from other visits without leaving a stray query param behind
   if the link gets shared further.
-- **WhatsApp ordering** (`/admin/analytics`) — an admin-only toggle plus a destination number;
-  when enabled, every item's detail popup shows an "order on WhatsApp" button that opens a
+- **Brand identity, social links & WhatsApp ordering** (`/admin/brand`) — brand name (shown in
+  the logo's alt text and the WhatsApp order message), logo upload (falls back to the shipped
+  default when unset), per-platform social links for Instagram/TikTok/Snapchat (shown as footer
+  icons, hidden automatically when blank), and the WhatsApp ordering toggle + destination number
+  — when enabled, every item's detail popup shows an "order on WhatsApp" button that opens a
   chat pre-filled with the item name and price via the `wa.me` click-to-chat link — no cart
-  or checkout page, no WhatsApp Business API setup required. Disabled by default.
+  or checkout page, no WhatsApp Business API setup required. Disabled by default. All backed
+  by the generic `settings` table — an unconfigured restaurant sees no change from the shipped
+  defaults.
 
 ## Running locally
 

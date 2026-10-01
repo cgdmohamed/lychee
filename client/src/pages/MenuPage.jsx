@@ -6,10 +6,10 @@ import ItemRow from '../components/ItemRow.jsx';
 import ItemModal from '../components/ItemModal.jsx';
 import { InstagramIcon, TikTokIcon, SnapchatIcon } from '../components/SocialIcons.jsx';
 
-const SOCIAL_LINKS = [
-  { Icon: InstagramIcon, name: 'Instagram', href: 'https://www.instagram.com/lycheesaudi' },
-  { Icon: TikTokIcon, name: 'TikTok', href: 'https://www.tiktok.com/@lycheesaudi' },
-  { Icon: SnapchatIcon, name: 'Snapchat', href: 'https://www.snapchat.com/add/lycheesaudi' },
+const SOCIAL_PLATFORMS = [
+  { key: 'instagram', Icon: InstagramIcon, name: 'Instagram' },
+  { key: 'tiktok', Icon: TikTokIcon, name: 'TikTok' },
+  { key: 'snapchat', Icon: SnapchatIcon, name: 'Snapchat' },
 ];
 
 export default function MenuPage() {
@@ -65,6 +65,11 @@ export default function MenuPage() {
 
   const activeCategory = menu.categories.find(c => c.key === activeCat) || menu.categories[0];
   const activeItem = activeCategory?.items.find(i => i.id === activeItemId) || null;
+  const brandName = menu.settings.brand_name || "lychee's";
+  const logoSrc = menu.settings.logoImage || '/assets/logo.svg';
+  const socialLinks = SOCIAL_PLATFORMS
+    .map(p => ({ ...p, href: menu.settings[`social_${p.key}`] }))
+    .filter(p => p.href);
 
   function toggleOption(itemId, stepId, optionId, type) {
     setBuilderSelections(prev => {
@@ -86,7 +91,7 @@ export default function MenuPage() {
         borderBottom: '1px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         gap: 10, flexWrap: 'wrap', padding: '14px clamp(16px,4vw,28px)', minHeight: 54,
       }}>
-        <img src="/assets/logo.svg" alt="lychee's" style={{ height: 20, width: 'auto', display: 'block' }} />
+        <img src={logoSrc} alt={brandName} style={{ height: 20, width: 'auto', display: 'block' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button
             onClick={() => setLang(l => (l === 'en' ? 'ar' : 'en'))}
@@ -181,26 +186,28 @@ export default function MenuPage() {
 
         {/* Footer */}
         <div style={{ marginTop: 56, paddingTop: 24, borderTop: '1px solid rgba(0,0,0,0.12)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-          <div style={{ display: 'flex', gap: 10 }}>
-            {SOCIAL_LINKS.map(s => (
-              <a
-                key={s.name}
-                href={s.href}
-                target="_blank"
-                rel="noopener"
-                aria-label={s.name}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', width: 38, height: 38, borderRadius: '50%',
-                  background: 'var(--brand-primary)', color: '#fffffc', textDecoration: 'none',
-                }}
-              >
-                <s.Icon size={18} />
-              </a>
-            ))}
-          </div>
+          {socialLinks.length ? (
+            <div style={{ display: 'flex', gap: 10 }}>
+              {socialLinks.map(s => (
+                <a
+                  key={s.name}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener"
+                  aria-label={s.name}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', width: 38, height: 38, borderRadius: '50%',
+                    background: 'var(--brand-primary)', color: '#fffffc', textDecoration: 'none',
+                  }}
+                >
+                  <s.Icon size={18} />
+                </a>
+              ))}
+            </div>
+          ) : null}
           <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
             <div style={{ fontFamily: strings.bodyFont, fontSize: 13, color: '#5a5f5a' }}>{strings.vatNote}</div>
-            <img src="/assets/logo.svg" alt="lychee's" style={{ height: 16, width: 'auto', opacity: 0.6 }} />
+            <img src={logoSrc} alt={brandName} style={{ height: 16, width: 'auto', opacity: 0.6 }} />
           </div>
         </div>
       </div>

@@ -12,6 +12,9 @@ function resolveText(settings, lang) {
 export function getStrings(lang, settings = {}) {
   const isAr = lang === 'ar';
   const text = resolveText(settings, lang);
+  // A custom brand name applies to both languages verbatim (it's one shared field);
+  // left unset, each language keeps its own original shipped default text.
+  const brandName = settings.brand_name || (isAr ? 'لايتشي' : "lychee's");
   return {
     isAr,
     dir: isAr ? 'rtl' : 'ltr',
@@ -42,7 +45,7 @@ export function getStrings(lang, settings = {}) {
     listSeparator: isAr ? '، ' : ', ',
     whatsappCta: isAr ? 'اطلب عبر واتساب' : 'order on whatsapp',
     whatsappMessage: (name, price) => (isAr
-      ? `مرحباً! أرغب بطلب: ${name} (${price} ريال) — من قائمة لايتشي`
-      : `Hi! I'd like to order: ${name} (${price} SAR) — from the lychee's menu`),
+      ? `مرحباً! أرغب بطلب: ${name} (${price} ريال) — من قائمة ${brandName}`
+      : `Hi! I'd like to order: ${name} (${price} SAR) — from the ${brandName} menu`),
   };
 }

@@ -22,3 +22,13 @@ const itemColumns = db.prepare("PRAGMA table_info(items)").all().map(c => c.name
 if (!itemColumns.includes('nutrition_enabled')) {
   db.exec('ALTER TABLE items ADD COLUMN nutrition_enabled INTEGER NOT NULL DEFAULT 1');
 }
+
+// The social links were hardcoded in the client until the admin-editable settings
+// were added. Seed them once (INSERT OR IGNORE — a no-op once the row exists) so an
+// already-deployed site keeps showing its current footer links by default, instead of
+// them silently disappearing the moment this code ships, while still letting the admin
+// blank a field afterwards to genuinely hide that platform.
+const seedSettingDefault = db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)');
+seedSettingDefault.run('social_instagram', 'https://www.instagram.com/lycheesaudi');
+seedSettingDefault.run('social_tiktok', 'https://www.tiktok.com/@lycheesaudi');
+seedSettingDefault.run('social_snapchat', 'https://www.snapchat.com/add/lycheesaudi');
