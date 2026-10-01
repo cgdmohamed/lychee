@@ -1,6 +1,12 @@
 import ImageSlot from './ImageSlot.jsx';
+import { logEvent } from '../api';
 
-export default function ItemModal({ item, lang, strings, onClose }) {
+function whatsappLink(number, text) {
+  const digits = number.replace(/[^\d]/g, '');
+  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+}
+
+export default function ItemModal({ item, lang, strings, whatsapp, onClose }) {
   const isAr = lang === 'ar';
   const name = isAr ? item.nameAr : item.nameEn;
   const desc = isAr ? item.descAr : item.descEn;
@@ -10,6 +16,10 @@ export default function ItemModal({ item, lang, strings, onClose }) {
     { label: strings.nutritionLabels.carbs, value: item.nutrition.carbs ?? '—' },
     { label: strings.nutritionLabels.fat, value: item.nutrition.fat ?? '—' },
   ];
+
+  function handleWhatsappClick() {
+    logEvent('whatsapp_click', { itemId: item.id });
+  }
 
   return (
     <div
@@ -47,6 +57,22 @@ export default function ItemModal({ item, lang, strings, onClose }) {
             <img src="/assets/ryal.svg" alt="SAR" style={{ height: 14, width: 'auto' }} />
             {item.price}
           </div>
+          {whatsapp?.enabled && whatsapp.number ? (
+            <a
+              href={whatsappLink(whatsapp.number, strings.whatsappMessage(name, item.price))}
+              target="_blank"
+              rel="noopener"
+              onClick={handleWhatsappClick}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                marginTop: 16, background: '#25D366', color: '#fff', textDecoration: 'none',
+                fontFamily: strings.bodyFont, fontWeight: 700, fontSize: 14, borderRadius: 999,
+                padding: '12px 18px', minHeight: 44,
+              }}
+            >
+              {strings.whatsappCta}
+            </a>
+          ) : null}
           {desc ? (
             <div style={{ fontFamily: strings.bodyFont, fontSize: 14.5, lineHeight: 1.6, color: '#5a5f5a', marginTop: 14 }}>
               {desc}

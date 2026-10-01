@@ -5,6 +5,7 @@ import { colors, button } from '../../admin/theme';
 const TABS = [
   { to: '/admin', label: 'menu', end: true },
   { to: '/admin/text', label: 'site text' },
+  { to: '/admin/analytics', label: 'analytics' },
 ];
 
 export default function AdminHeader() {

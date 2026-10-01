@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { api } from '../api';
+import { api, logEvent } from '../api';
 import { getStrings } from '../i18n';
 import ImageSlot from '../components/ImageSlot.jsx';
 import ItemRow from '../components/ItemRow.jsx';
@@ -30,6 +30,20 @@ export default function MenuPage() {
       })
       .catch(err => setError(err.message));
   }, []);
+
+  // Tag a visit that came in via the QR code so it's attributable in analytics,
+  // then tidy the URL so sharing/refreshing doesn't keep re-logging it.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('src') === 'qr') {
+      logEvent('page_view', { source: 'qr' });
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeItemId != null) logEvent('item_view', { itemId: activeItemId });
+  }, [activeItemId]);
 
   const strings = useMemo(() => getStrings(lang, menu?.settings), [lang, menu?.settings]);
 
@@ -183,7 +197,13 @@ export default function MenuPage() {
       </div>
 
       {activeItem ? (
-        <ItemModal item={activeItem} lang={lang} strings={strings} onClose={() => setActiveItemId(null)} />
+        <ItemModal
+          item={activeItem}
+          lang={lang}
+          strings={strings}
+          whatsapp={{ enabled: menu.settings.whatsapp_enabled === '1', number: menu.settings.whatsapp_number }}
+          onClose={() => setActiveItemId(null)}
+        />
       ) : null}
     </div>
   );

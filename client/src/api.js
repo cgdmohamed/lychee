@@ -59,7 +59,21 @@ export const api = {
   importMenuJson: file => uploadFile('/admin/import/menu.json', file),
 
   optimizeImages: () => request('/admin/optimize-images', { method: 'POST', auth: true }),
+
+  getAnalytics: () => request('/admin/analytics', { auth: true }),
+  getQrCode: () => request('/admin/qr-code', { auth: true }),
 };
+
+// Fire-and-forget: a tracking call failing (network hiccup, rate limit) should
+// never break the page for the person using it.
+export function logEvent(type, { itemId, categoryId, source } = {}) {
+  fetch('/api/analytics/event', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type, itemId, categoryId, source }),
+    keepalive: true,
+  }).catch(() => {});
+}
 
 export async function uploadImage(file) {
   const data = await uploadFile('/admin/upload', file, 'image');

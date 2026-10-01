@@ -9,11 +9,18 @@ import authRoutes from './routes/auth.js';
 import menuRoutes from './routes/menu.js';
 import adminRoutes from './routes/admin.js';
 import uploadRoutes from './routes/upload.js';
+import analyticsRoutes from './routes/analytics.js';
 import { uploadsDir } from './routes/upload.js';
 import './db/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
+
+// Behind Coolify's Traefik (a single reverse-proxy hop): trust its X-Forwarded-*
+// headers so req.protocol/req.ip reflect the real client, not the proxy. Without
+// this, QR codes would encode "http://" even on an https deployment, and the auth
+// rate limiter would see every visitor as the same IP (the proxy's).
+app.set('trust proxy', 1);
 
 // contentSecurityPolicy/crossOriginEmbedderPolicy off: the client loads Google Fonts
 // cross-origin, and a default CSP would block that without extra tuning. The rest of
@@ -28,6 +35,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/menu', menuRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/upload', uploadRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 

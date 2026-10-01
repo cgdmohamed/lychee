@@ -36,6 +36,20 @@ A bilingual (EN/AR) digital restaurant menu with an admin CMS.
   build-your-own copy, the VAT note) is editable per-language, backed by the `settings`
   table. Registry lives in `client/src/textFields.js`; leaving a field blank falls back to
   its shipped default.
+- **Analytics** (`/admin/analytics`) — page views, item views, WhatsApp-order clicks, and QR
+  scans are logged (fire-and-forget, rate-limited, no PII) as customers browse the public
+  menu, and summarized on this tab alongside a "top items" breakdown by views/clicks. Events
+  reference items/categories by id without a foreign key, so deleting a menu item later never
+  blocks or cascade-deletes its historical analytics.
+- **QR code with scan tracking** (`/admin/analytics`) — generates a QR code pointing at the
+  public menu (tagged `?src=qr`), downloadable as a PNG for table tents/flyers. A scan is
+  logged as its own analytics event and the tag is stripped from the URL on load, so QR
+  traffic is distinguishable from other visits without leaving a stray query param behind
+  if the link gets shared further.
+- **WhatsApp ordering** (`/admin/analytics`) — an admin-only toggle plus a destination number;
+  when enabled, every item's detail popup shows an "order on WhatsApp" button that opens a
+  chat pre-filled with the item name and price via the `wa.me` click-to-chat link — no cart
+  or checkout page, no WhatsApp Business API setup required. Disabled by default.
 
 ## Running locally
 
@@ -131,4 +145,4 @@ A container healthcheck hits `/api/health`.
 ## Data model
 
 SQLite tables: `categories`, `items`, `build_steps`, `build_options`, `settings` (key/value,
-e.g. `heroImage`), `admin_users`. See `server/src/db/schema.sql`.
+e.g. `heroImage`), `admin_users`, `analytics_events`. See `server/src/db/schema.sql`.

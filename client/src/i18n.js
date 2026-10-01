@@ -40,5 +40,9 @@ export function getStrings(lang, settings = {}) {
     builderCtaClose: text.builderCtaClose,
     additionalCharge: text.additionalCharge,
     listSeparator: isAr ? '، ' : ', ',
+    whatsappCta: isAr ? 'اطلب عبر واتساب' : 'order on whatsapp',
+    whatsappMessage: (name, price) => (isAr
+      ? `مرحباً! أرغب بطلب: ${name} (${price} ريال) — من قائمة لايتشي`
+      : `Hi! I'd like to order: ${name} (${price} SAR) — from the lychee's menu`),
   };
 }

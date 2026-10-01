@@ -3,6 +3,7 @@ import multer from 'multer';
 import path from 'node:path';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
+import QRCode from 'qrcode';
 import { db } from '../db/index.js';
 import { requireAuth } from '../middleware/auth.js';
 import { serializeCategory, serializeItem, getFullMenu } from '../db/serialize.js';
@@ -512,6 +513,49 @@ router.post('/optimize-images', async (req, res) => {
   }
 
   res.json(result);
+});
+
+// ---- Analytics ----
+
+router.get('/analytics', (req, res) => {
+  const countByType = type => db.prepare('SELECT COUNT(*) AS c FROM analytics_events WHERE type = ?').get(type).c;
+  const totals = {
+    pageViews: countByType('page_view'),
+    itemViews: countByType('item_view'),
+    whatsappClicks: countByType('whatsapp_click'),
+    qrScans: db.prepare("SELECT COUNT(*) AS c FROM analytics_events WHERE source = 'qr'").get().c,
+  };
+
+  const topItems = db.prepare(`
+    SELECT items.id, items.name_en AS nameEn, items.name_ar AS nameAr,
+      SUM(CASE WHEN analytics_events.type = 'item_view' THEN 1 ELSE 0 END) AS views,
+      SUM(CASE WHEN analytics_events.type = 'whatsapp_click' THEN 1 ELSE 0 END) AS whatsappClicks
+    FROM analytics_events
+    JOIN items ON items.id = analytics_events.item_id
+    WHERE analytics_events.item_id IS NOT NULL
+    GROUP BY items.id
+    ORDER BY views DESC, whatsappClicks DESC
+    LIMIT 20
+  `).all();
+
+  res.json({ totals, topItems });
+});
+
+// ---- QR code (links to the public menu, tagged so scans are attributable in analytics) ----
+
+router.get('/qr-code', async (req, res) => {
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  const targetUrl = `${baseUrl}/?src=qr`;
+  try {
+    const dataUrl = await QRCode.toDataURL(targetUrl, {
+      width: 512,
+      margin: 2,
+      color: { dark: '#004438', light: '#fffffc' },
+    });
+    res.json({ targetUrl, dataUrl });
+  } catch {
+    res.status(500).json({ error: 'failed to generate QR code' });
+  }
 });
 
 export default router;
