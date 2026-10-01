@@ -4,6 +4,7 @@ import AdminLogin from './pages/AdminLogin.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
 import AdminSiteText from './pages/AdminSiteText.jsx';
 import AdminAnalytics from './pages/AdminAnalytics.jsx';
+import AdminAppearance from './pages/AdminAppearance.jsx';
 import { getToken } from './api';
 
 function RequireAuth({ children }) {
@@ -38,6 +39,14 @@ export default function App() {
           element={
             <RequireAuth>
               <AdminAnalytics />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/appearance"
+          element={
+            <RequireAuth>
+              <AdminAppearance />
             </RequireAuth>
           }
         />

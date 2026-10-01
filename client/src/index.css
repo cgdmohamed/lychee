@@ -1,3 +1,11 @@
+:root {
+  /* Public menu brand colors — overridden at runtime from admin-set settings
+     (see MenuPage.jsx); these are just the shipped defaults. Admin dashboard
+     chrome intentionally does NOT use these vars, so a restaurant's brand
+     choice can never make the admin's own UI unusable. */
+  --brand-primary: #004438;
+  --brand-accent: #6fa088;
+}
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
 body {
@@ -6,11 +14,11 @@ body {
   color: #171a18;
   -webkit-font-smoothing: antialiased;
 }
-a { color: #004438; text-decoration: underline; }
-a:hover { color: #6fa088; }
-::selection { background: #6fa088; color: #fffffc; }
+a { color: var(--brand-primary); text-decoration: underline; }
+a:hover { color: var(--brand-accent); }
+::selection { background: var(--brand-accent); color: #fffffc; }
 button { font: inherit; }
-input[type="range"] { accent-color: #6fa088; }
+input[type="range"] { accent-color: var(--brand-accent); }
 
 /* Admin UI interaction states (kept as classnames since inline styles can't do :focus/:hover) */
 .admin-field {

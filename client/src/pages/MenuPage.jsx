@@ -45,6 +45,15 @@ export default function MenuPage() {
     if (activeItemId != null) logEvent('item_view', { itemId: activeItemId });
   }, [activeItemId]);
 
+  // Apply admin-set brand colors (falls back to the CSS defaults in index.css
+  // when a setting is unset, so an unconfigured restaurant sees no change).
+  useEffect(() => {
+    if (!menu) return;
+    const root = document.documentElement;
+    if (menu.settings.theme_primary) root.style.setProperty('--brand-primary', menu.settings.theme_primary);
+    if (menu.settings.theme_accent) root.style.setProperty('--brand-accent', menu.settings.theme_accent);
+  }, [menu]);
+
   const strings = useMemo(() => getStrings(lang, menu?.settings), [lang, menu?.settings]);
 
   if (error) {
@@ -83,7 +92,7 @@ export default function MenuPage() {
             onClick={() => setLang(l => (l === 'en' ? 'ar' : 'en'))}
             style={{
               fontFamily: strings.bodyFont, fontWeight: 700, fontSize: 13, letterSpacing: '0.06em', textTransform: 'uppercase',
-              background: '#004438', color: '#fffffc', border: 'none', borderRadius: 999, padding: '10px 18px', minHeight: 40, cursor: 'pointer',
+              background: 'var(--brand-primary)', color: '#fffffc', border: 'none', borderRadius: 999, padding: '10px 18px', minHeight: 40, cursor: 'pointer',
             }}
           >
             {strings.toggleLabel}
@@ -129,11 +138,11 @@ export default function MenuPage() {
             >
               <span style={{
                 width: 60, height: 60, borderRadius: '50%', display: 'block', overflow: 'hidden', padding: 3,
-                border: active ? '2.5px solid #004438' : '2.5px solid transparent', boxSizing: 'border-box',
+                border: active ? '2.5px solid var(--brand-primary)' : '2.5px solid transparent', boxSizing: 'border-box',
               }}>
                 <ImageSlot src={cat.iconImage} shape="circle" placeholder={label} style={{ width: '100%', height: '100%' }} />
               </span>
-              <span style={{ fontSize: 11.5, fontWeight: active ? 700 : 600, lineHeight: 1.25, color: active ? '#004438' : '#171a18', whiteSpace: 'normal', textAlign: 'center' }}>
+              <span style={{ fontSize: 11.5, fontWeight: active ? 700 : 600, lineHeight: 1.25, color: active ? 'var(--brand-primary)' : '#171a18', whiteSpace: 'normal', textAlign: 'center' }}>
                 {label}
               </span>
             </button>
@@ -149,7 +158,7 @@ export default function MenuPage() {
           </div>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 9, marginBottom: 20 }}>
             {Array.from({ length: 13 }).map((_, i) => (
-              <span key={i} style={{ width: 6, height: 6, background: '#6fa088', transform: 'rotate(45deg)', display: 'inline-block' }} />
+              <span key={i} style={{ width: 6, height: 6, background: 'var(--brand-accent)', transform: 'rotate(45deg)', display: 'inline-block' }} />
             ))}
           </div>
 
@@ -182,7 +191,7 @@ export default function MenuPage() {
                 aria-label={s.name}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', width: 38, height: 38, borderRadius: '50%',
-                  background: '#004438', color: '#fffffc', textDecoration: 'none',
+                  background: 'var(--brand-primary)', color: '#fffffc', textDecoration: 'none',
                 }}
               >
                 <s.Icon size={18} />

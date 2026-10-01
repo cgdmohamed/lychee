@@ -36,6 +36,11 @@ A bilingual (EN/AR) digital restaurant menu with an admin CMS.
   build-your-own copy, the VAT note) is editable per-language, backed by the `settings`
   table. Registry lives in `client/src/textFields.js`; leaving a field blank falls back to
   its shipped default.
+- **Appearance / brand colors** (`/admin/appearance`) — a primary and accent color picker that
+  recolors the public menu's buttons, badges, and highlights (`theme_primary`/`theme_accent`
+  settings, applied as CSS custom properties on page load). The admin dashboard's own colors
+  are intentionally hardcoded and never follow this setting, so a brand choice here can't make
+  the dashboard itself unreadable.
 - **Analytics** (`/admin/analytics`) — page views, item views, WhatsApp-order clicks, and QR
   scans are logged (fire-and-forget, rate-limited, no PII) as customers browse the public
   menu, and summarized on this tab alongside a "top items" breakdown by views/clicks. Events

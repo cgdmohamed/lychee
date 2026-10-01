@@ -53,7 +53,7 @@ export default function ItemModal({ item, lang, strings, whatsapp, onClose }) {
               ✕
             </button>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: strings.bodyFont, fontWeight: 700, fontSize: 16, color: '#6fa088', marginTop: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: strings.bodyFont, fontWeight: 700, fontSize: 16, color: 'var(--brand-accent)', marginTop: 4 }}>
             <img src="/assets/ryal.svg" alt="SAR" style={{ height: 14, width: 'auto' }} />
             {item.price}
           </div>
@@ -85,7 +85,7 @@ export default function ItemModal({ item, lang, strings, whatsapp, onClose }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
               {nutritionFacts.map(fact => (
                 <div key={fact.label} style={{ background: '#f3f0df', borderRadius: 12, padding: '12px 8px', textAlign: 'center' }}>
-                  <div style={{ fontFamily: strings.bodyFont, fontWeight: 700, fontSize: 17, color: '#004438' }}>{fact.value}</div>
+                  <div style={{ fontFamily: strings.bodyFont, fontWeight: 700, fontSize: 17, color: 'var(--brand-primary)' }}>{fact.value}</div>
                   <div style={{ fontFamily: strings.bodyFont, fontSize: 11, color: '#5a5f5a', marginTop: 2 }}>{fact.label}</div>
                 </div>
               ))}

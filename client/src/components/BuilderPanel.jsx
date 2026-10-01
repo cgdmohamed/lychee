@@ -19,8 +19,8 @@ export default function BuilderPanel({ item, lang, strings, selections, amount, 
   const amountIdx = amount || 2;
 
   return (
-    <div style={{ border: '1.5px solid #6fa088', borderRadius: 20, padding: '20px 20px 22px', margin: '4px 0 18px' }}>
-      <div style={{ fontFamily: strings.bodyFont, fontWeight: 700, fontSize: 13, color: '#004438', marginBottom: 14 }}>
+    <div style={{ border: '1.5px solid var(--brand-accent)', borderRadius: 20, padding: '20px 20px 22px', margin: '4px 0 18px' }}>
+      <div style={{ fontFamily: strings.bodyFont, fontWeight: 700, fontSize: 13, color: 'var(--brand-primary)', marginBottom: 14 }}>
         {strings.builderIntro}
       </div>
       {steps.map(step => (
@@ -42,11 +42,11 @@ export default function BuilderPanel({ item, lang, strings, selections, amount, 
                   fontFamily: strings.bodyFont,
                   fontSize: 13,
                   fontWeight: 600,
-                  border: '1px solid #6fa088',
+                  border: '1px solid var(--brand-accent)',
                   borderRadius: 999,
                   padding: '9px 14px',
                   cursor: 'pointer',
-                  background: opt.selected ? '#004438' : '#f3f0df',
+                  background: opt.selected ? 'var(--brand-primary)' : '#f3f0df',
                   color: opt.selected ? '#fffffc' : '#171a18',
                   minHeight: 40,
                 }}
@@ -62,7 +62,7 @@ export default function BuilderPanel({ item, lang, strings, selections, amount, 
           <span style={{ fontWeight: 700, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: strings.bodyFont, color: '#171a18' }}>
             {strings.amountTitle}
           </span>
-          <span style={{ fontFamily: strings.bodyFont, fontSize: 12, fontWeight: 600, color: '#6fa088' }}>
+          <span style={{ fontFamily: strings.bodyFont, fontSize: 12, fontWeight: 600, color: 'var(--brand-accent)' }}>
             {strings.amountNames[amountIdx - 1]}
           </span>
         </div>
