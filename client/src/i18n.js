@@ -9,6 +9,13 @@ function resolveText(settings, lang) {
   return out;
 }
 
+const DEFAULT_WHATSAPP_MESSAGE_EN = "Hi! I'd like to order: {item} ({price} {currency}) — from the {brand} menu";
+const DEFAULT_WHATSAPP_MESSAGE_AR = 'مرحباً! أرغب بطلب: {item} ({price} {currency}) — من قائمة {brand}';
+
+function fillTemplate(template, vars) {
+  return template.replace(/\{(\w+)\}/g, (match, key) => (key in vars ? vars[key] : match));
+}
+
 export function getStrings(lang, settings = {}) {
   const isAr = lang === 'ar';
   const text = resolveText(settings, lang);
@@ -19,6 +26,9 @@ export function getStrings(lang, settings = {}) {
   // icon next to prices); a custom value here replaces that icon with plain text.
   const currencyLabel = (settings.currency_symbol || '').trim();
   const currencyText = currencyLabel || (isAr ? 'ريال' : 'SAR');
+  // Sitewide kill switch, ANDed with each item's own nutritionEnabled flag at the
+  // point nutrition facts are rendered — see ItemRow.jsx / ItemModal.jsx.
+  const nutritionGloballyEnabled = settings.nutrition_global_enabled !== '0';
   return {
     isAr,
     dir: isAr ? 'rtl' : 'ltr',
@@ -48,11 +58,15 @@ export function getStrings(lang, settings = {}) {
     additionalCharge: text.additionalCharge,
     listSeparator: isAr ? '، ' : ', ',
     whatsappCta: isAr ? 'اطلب عبر واتساب' : 'order on whatsapp',
-    whatsappMessage: (name, price) => (isAr
-      ? `مرحباً! أرغب بطلب: ${name} (${price} ${currencyText}) — من قائمة ${brandName}`
-      : `Hi! I'd like to order: ${name} (${price} ${currencyText}) — from the ${brandName} menu`),
+    whatsappMessage: (name, price) => fillTemplate(
+      isAr
+        ? (settings.whatsapp_message_ar || DEFAULT_WHATSAPP_MESSAGE_AR)
+        : (settings.whatsapp_message_en || DEFAULT_WHATSAPP_MESSAGE_EN),
+      { item: name, price, currency: currencyText, brand: brandName }
+    ),
     // Empty when unset: the price UI then falls back to the Riyal icon (ryal.svg)
     // instead of this text, same as before currency became configurable.
     currencyLabel,
+    nutritionGloballyEnabled,
   };
 }

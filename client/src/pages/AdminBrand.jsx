@@ -299,14 +299,22 @@ function SocialLinksSettings({ settings, onSaved }) {
   );
 }
 
+const DEFAULT_WHATSAPP_MESSAGE_EN = "Hi! I'd like to order: {item} ({price} {currency}) — from the {brand} menu";
+const DEFAULT_WHATSAPP_MESSAGE_AR = 'مرحباً! أرغب بطلب: {item} ({price} {currency}) — من قائمة {brand}';
+
 function WhatsappSettings({ settings, onSaved }) {
   const [enabled, setEnabled] = useState(settings.whatsapp_enabled === '1');
   const [number, setNumber] = useState(settings.whatsapp_number || '');
+  const [messageEn, setMessageEn] = useState(settings.whatsapp_message_en || '');
+  const [messageAr, setMessageAr] = useState(settings.whatsapp_message_ar || '');
   const [saving, setSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
   const [error, setError] = useState('');
 
-  const dirty = enabled !== (settings.whatsapp_enabled === '1') || number !== (settings.whatsapp_number || '');
+  const dirty = enabled !== (settings.whatsapp_enabled === '1')
+    || number !== (settings.whatsapp_number || '')
+    || messageEn !== (settings.whatsapp_message_en || '')
+    || messageAr !== (settings.whatsapp_message_ar || '');
 
   async function save() {
     setSaving(true);
@@ -315,8 +323,15 @@ function WhatsappSettings({ settings, onSaved }) {
       await Promise.all([
         api.setSetting('whatsapp_enabled', enabled ? '1' : '0'),
         api.setSetting('whatsapp_number', number.trim()),
+        api.setSetting('whatsapp_message_en', messageEn.trim()),
+        api.setSetting('whatsapp_message_ar', messageAr.trim()),
       ]);
-      onSaved({ whatsapp_enabled: enabled ? '1' : '0', whatsapp_number: number.trim() });
+      onSaved({
+        whatsapp_enabled: enabled ? '1' : '0',
+        whatsapp_number: number.trim(),
+        whatsapp_message_en: messageEn.trim(),
+        whatsapp_message_ar: messageAr.trim(),
+      });
       setJustSaved(true);
       setTimeout(() => setJustSaved(false), 2000);
     } catch (err) {
@@ -331,8 +346,8 @@ function WhatsappSettings({ settings, onSaved }) {
       <div style={sectionTitle()}>whatsapp ordering</div>
       <p style={{ fontSize: 12.5, color: colors.faint, margin: '0 0 14px' }}>
         When enabled, every item's detail popup shows an "order on WhatsApp" button that opens a
-        chat pre-filled with the item name and price — no cart or checkout page, the customer just
-        sends the message.
+        chat pre-filled with the message below — no cart or checkout page, the customer just
+        sends it.
       </p>
       <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}>
         <button
@@ -353,15 +368,48 @@ function WhatsappSettings({ settings, onSaved }) {
             style={field()}
           />
         </div>
-        <button onClick={save} disabled={!dirty || saving} className="admin-btn" style={button(dirty ? 'primary' : 'ghost')}>
-          {saving ? 'saving…' : justSaved ? 'saved ✓' : 'save'}
-        </button>
       </div>
       {enabled && !number.trim() ? (
         <div style={{ marginTop: 10, fontSize: 12, color: colors.danger }}>
           Enabled but no number set — the order button won't appear until you add one.
         </div>
       ) : null}
+
+      <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={fieldGroup()}>
+          <label style={label()}>order message (EN)</label>
+          <textarea
+            className="admin-field"
+            value={messageEn}
+            onChange={e => setMessageEn(e.target.value)}
+            placeholder={DEFAULT_WHATSAPP_MESSAGE_EN}
+            rows={2}
+            style={{ ...field(), minHeight: 56, resize: 'vertical', fontFamily: 'inherit' }}
+          />
+        </div>
+        <div style={fieldGroup()}>
+          <label style={label()}>order message (AR)</label>
+          <textarea
+            className="admin-field"
+            value={messageAr}
+            onChange={e => setMessageAr(e.target.value)}
+            placeholder={DEFAULT_WHATSAPP_MESSAGE_AR}
+            rows={2}
+            style={{ ...field(), minHeight: 56, resize: 'vertical', fontFamily: 'inherit', direction: 'rtl' }}
+          />
+        </div>
+        <p style={{ fontSize: 11, color: colors.faint, margin: 0 }}>
+          Placeholders: <code>{'{item}'}</code> item name, <code>{'{price}'}</code> price,{' '}
+          <code>{'{currency}'}</code> currency, <code>{'{brand}'}</code> brand name. Leave a field
+          blank to use its default message.
+        </p>
+      </div>
+
+      <div style={{ marginTop: 14 }}>
+        <button onClick={save} disabled={!dirty || saving} className="admin-btn" style={button(dirty ? 'primary' : 'ghost')}>
+          {saving ? 'saving…' : justSaved ? 'saved ✓' : 'save'}
+        </button>
+      </div>
       {error ? <div style={{ marginTop: 10, fontSize: 12, color: colors.danger }}>{error}</div> : null}
     </div>
   );

@@ -6,6 +6,7 @@ import ImageSlot from '../components/ImageSlot.jsx';
 import ItemEditor from '../components/admin/ItemEditor.jsx';
 import ImportExportPanel from '../components/admin/ImportExportPanel.jsx';
 import ImageOptimizePanel from '../components/admin/ImageOptimizePanel.jsx';
+import NutritionFactsPanel from '../components/admin/NutritionFactsPanel.jsx';
 import { colors, font, headingFont, field, label, fieldGroup, button, card, sectionTitle } from '../admin/theme';
 
 export default function AdminDashboard() {
@@ -139,6 +140,10 @@ export default function AdminDashboard() {
     });
   }
 
+  function patchSettings(update) {
+    setSettings(prev => ({ ...prev, ...update }));
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: colors.bg, fontFamily: font, color: colors.ink }}>
       <AdminHeader />
@@ -164,6 +169,8 @@ export default function AdminDashboard() {
             <div style={sectionTitle()}>hero photo</div>
             <ImageSlot src={settings.heroImage} editable onUploaded={uploadHero} placeholder="hero image" shape="rect" style={{ width: '100%', height: 110, borderRadius: 12 }} />
           </div>
+
+          <NutritionFactsPanel settings={settings} onSaved={patchSettings} />
 
           <div style={card()} className="admin-card">
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>

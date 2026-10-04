@@ -82,7 +82,7 @@ export default function ItemModal({ item, lang, strings, whatsapp, onClose }) {
               {desc}
             </div>
           ) : null}
-          {item.nutritionEnabled ? (
+          {strings.nutritionGloballyEnabled && item.nutritionEnabled ? (
             <div style={{ marginTop: 22, borderTop: '1px solid rgba(0,0,0,0.1)', paddingTop: 18 }}>
               <div style={{ fontFamily: strings.bodyFont, fontWeight: 700, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#171a18', marginBottom: 12 }}>
                 {strings.nutritionTitle}

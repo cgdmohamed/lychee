@@ -15,7 +15,9 @@ A bilingual (EN/AR) digital restaurant menu with an admin CMS.
 - **Admin CMS** (`/admin`, JWT-protected) — create/edit/delete categories and items, edit
   nutrition facts, toggle spicy/new badges, toggle whether an item's nutrition facts are shown
   to customers at all (per item — useful for items where the values aren't meaningful or
-  haven't been measured yet; enabled by default), edit build-your-own steps & options, upload photos
+  haven't been measured yet; enabled by default) plus a sitewide "nutrition facts" switch in
+  the sidebar that overrides every item's own toggle at once (turning it back on restores each
+  item's individual setting), edit build-your-own steps & options, upload photos
   (category icons, item thumbnails, hero image) to local disk storage. Every upload is
   auto-compressed and re-encoded to WebP server-side (capped at 1920px on the longest side) —
   a typical multi-MB phone photo lands well under 100KB with no visible quality loss. Applies
@@ -62,10 +64,11 @@ A bilingual (EN/AR) digital restaurant menu with an admin CMS.
   Instagram/TikTok/Snapchat/Facebook/X/YouTube/Threads (shown as footer icons, hidden
   automatically when blank), and the WhatsApp ordering toggle + destination number — when
   enabled, every item's detail popup shows an "order on WhatsApp" button that opens a chat
-  pre-filled with the item name and price via the `wa.me` click-to-chat link — no cart or
-  checkout page, no WhatsApp Business API setup required. Disabled by default. All backed by
-  the generic `settings` table — an unconfigured restaurant sees no change from the shipped
-  defaults.
+  pre-filled with a message via the `wa.me` click-to-chat link — no cart or checkout page, no
+  WhatsApp Business API setup required. Disabled by default. The message itself is editable
+  per language, with `{item}`/`{price}`/`{currency}`/`{brand}` placeholders filled in at send
+  time; leaving it blank keeps the shipped default wording. All backed by the generic
+  `settings` table — an unconfigured restaurant sees no change from the shipped defaults.
 
 ## Running locally
 
