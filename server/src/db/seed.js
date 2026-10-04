@@ -106,9 +106,22 @@ const MENU = [
 ];
 
 function seed() {
+  // Whether the default menu has ever been seeded, tracked explicitly rather than
+  // inferred from "categories is non-empty" — an admin deleting every category (or
+  // every item) is a deliberate choice, not a sign this is a fresh database, and
+  // inferring it that way meant deleted menu items would silently come back on the
+  // next deploy's seed run.
+  const alreadySeeded = db.prepare("SELECT value FROM settings WHERE key = 'menu_seeded'").get();
   const existingCount = db.prepare('SELECT COUNT(*) AS c FROM categories').get().c;
-  if (existingCount > 0) {
+  const markSeeded = db.prepare("INSERT OR IGNORE INTO settings (key, value) VALUES ('menu_seeded', '1')");
+
+  if (alreadySeeded) {
     console.log('Database already seeded, skipping menu seed.');
+  } else if (existingCount > 0) {
+    // Upgrading from before menu_seeded existed: categories are already here from an
+    // earlier seed run (or admin-added content) — record that without touching them.
+    markSeeded.run();
+    console.log('Existing categories found; marking as already seeded without changing them.');
   } else {
     const insertCategory = db.prepare(
       `INSERT INTO categories (key, name_en, name_ar, sort_order) VALUES (?, ?, ?, ?)`
@@ -167,6 +180,7 @@ function seed() {
       });
     });
     tx();
+    markSeeded.run();
     console.log(`Seeded ${MENU.length} categories.`);
   }
 
