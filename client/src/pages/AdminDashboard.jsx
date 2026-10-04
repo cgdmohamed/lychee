@@ -12,7 +12,7 @@ export default function AdminDashboard() {
   const [categories, setCategories] = useState(null);
   const [error, setError] = useState('');
   const [selectedCatId, setSelectedCatId] = useState(null);
-  const [newCat, setNewCat] = useState({ key: '', nameEn: '', nameAr: '' });
+  const [newCat, setNewCat] = useState({ nameEn: '', nameAr: '' });
   const [addingCat, setAddingCat] = useState(false);
   const [newItem, setNewItem] = useState({ nameEn: '', nameAr: '', price: '' });
   const [addingItem, setAddingItem] = useState(false);
@@ -52,11 +52,11 @@ export default function AdminDashboard() {
 
   async function addCategory(e) {
     e.preventDefault();
-    if (!newCat.key || !newCat.nameEn || !newCat.nameAr) return;
+    if (!newCat.nameEn || !newCat.nameAr) return;
     setAddingCat(true);
     await guarded(async () => {
       const cat = await api.createCategory(newCat);
-      setNewCat({ key: '', nameEn: '', nameAr: '' });
+      setNewCat({ nameEn: '', nameAr: '' });
       setCategories(prev => [...prev, { ...cat, items: [] }]);
       setSelectedCatId(cat.id);
     });
@@ -215,10 +215,6 @@ export default function AdminDashboard() {
 
             <form onSubmit={addCategory} style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 12, borderTop: `1px solid ${colors.border}` }}>
               <div style={sectionTitle({ fontSize: 11, marginBottom: 2 })}>add category</div>
-              <div style={fieldGroup()}>
-                <label style={label()}>key (unique)</label>
-                <input className="admin-field" value={newCat.key} onChange={e => setNewCat({ ...newCat, key: e.target.value })} style={field()} />
-              </div>
               <div style={fieldGroup()}>
                 <label style={label()}>name (EN)</label>
                 <input className="admin-field" value={newCat.nameEn} onChange={e => setNewCat({ ...newCat, nameEn: e.target.value })} style={field()} />

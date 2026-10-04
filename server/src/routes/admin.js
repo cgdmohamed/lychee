@@ -25,14 +25,34 @@ function nextSortOrder(table, whereCol, whereVal) {
 
 // ---- Categories ----
 
+// `key` is an internal stable identifier (used by CSV import/export to match rows to
+// existing categories) — not something an admin should have to think up or see when
+// just adding a category, so it's generated here from the English name instead.
+function slugify(text) {
+  return String(text || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+function uniqueCategoryKey(nameEn) {
+  const base = slugify(nameEn) || 'category';
+  const exists = db.prepare('SELECT 1 FROM categories WHERE key = ?');
+  let key = base;
+  let suffix = 2;
+  while (exists.get(key)) {
+    key = `${base}-${suffix}`;
+    suffix++;
+  }
+  return key;
+}
+
 router.get('/categories', (req, res) => {
   res.json(getFullMenu());
 });
 
 router.post('/categories', (req, res) => {
-  const { key, nameEn, nameAr, iconImage } = req.body || {};
-  if (!key || !nameEn || !nameAr) return res.status(400).json({ error: 'key, nameEn, nameAr required' });
+  const { nameEn, nameAr, iconImage } = req.body || {};
+  if (!nameEn || !nameAr) return res.status(400).json({ error: 'nameEn, nameAr required' });
   try {
+    const key = uniqueCategoryKey(nameEn);
     const sortOrder = nextSortOrder('categories');
     const result = db.prepare(
       'INSERT INTO categories (key, name_en, name_ar, icon_image, sort_order) VALUES (?, ?, ?, ?, ?)'
