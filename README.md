@@ -129,6 +129,19 @@ cp .env.example .env   # set JWT_SECRET and SEED_ADMIN_PASSWORD
 docker compose up --build
 ```
 
+The compose file intentionally doesn't publish a host port (`expose:` only, not `ports:`) —
+that avoids host-level port collisions when several apps share one Coolify server, since
+Coolify's Traefik proxy reaches the container over the internal Docker network instead. That
+means `docker compose up` alone, outside Coolify, won't be reachable from your browser; add
+`APP_PORT=4000` to `.env` and a local override file (`docker-compose.override.yaml`) with:
+
+```yaml
+services:
+  app:
+    ports:
+      - "${APP_PORT:-4000}:4000"
+```
+
 This starts one `app` service, seeds the SQLite DB on first boot (idempotent — safe on every
 restart), and persists data across restarts via two named volumes:
 
@@ -149,9 +162,12 @@ A container healthcheck hits `/api/health`.
    redeploys.
 5. Domain/HTTPS is automatic: the compose file declares `SERVICE_FQDN_APP_4000` (Coolify's
    "magic" env var convention), which Coolify replaces with a real generated domain and wires
-   through its built-in Traefik proxy to port 4000 — enable/replace it with your own domain
-   under the app's General settings. (Plain `docker compose up` outside Coolify ignores that
-   var and just uses the regular `ports` mapping instead.)
+   through its built-in Traefik proxy to the container's port 4000 over Coolify's internal
+   Docker network — enable/replace it with your own domain under the app's General settings.
+   The compose file deliberately has no `ports:` mapping, only `expose:`, so the container
+   never binds a port on the host — this is what Traefik-based Coolify deployments are
+   supposed to look like, and it avoids "port is already allocated" failures from another
+   app on the same server claiming the same host port.
 6. Deploy. First boot runs the seed script automatically.
 
 ## Data model

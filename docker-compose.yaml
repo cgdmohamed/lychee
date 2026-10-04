@@ -4,8 +4,18 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
-    ports:
-      - "${APP_PORT:-4000}:4000"
+    # Not `ports:` — that binds the host's network interface directly, which collides
+    # with any other container on the same server also claiming that host port (the
+    # actual cause behind "port is already allocated" deploy failures on a shared
+    # Coolify host). Coolify's Traefik proxy reaches this container over the internal
+    # `coolify` Docker network using SERVICE_FQDN_APP_4000 below, so no host bind is
+    # needed there. `expose` just documents the container's internal port for other
+    # containers on the same network — it doesn't publish anything to the host.
+    # Running via plain `docker compose up` outside Coolify (no Traefik in front) needs
+    # its own port mapping to reach the app from the host — see the README's Docker
+    # section for a docker-compose.override.yaml snippet that adds one back.
+    expose:
+      - "4000"
     environment:
       PORT: 4000
       NODE_ENV: production
