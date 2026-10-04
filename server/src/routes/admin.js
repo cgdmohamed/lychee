@@ -306,7 +306,10 @@ router.post('/import/items.csv', fileUpload.single('file'), (req, res) => {
   const findByCategoryAndName = db.prepare('SELECT id FROM items WHERE category_id = ? AND name_en = ?');
   const findById = db.prepare('SELECT id, category_id FROM items WHERE id = ?');
 
-  const result = { created: 0, updated: 0, errors: [] };
+  // errors: the row was skipped, nothing imported for it. notes: the row still
+  // imported successfully, just not exactly as literally specified (e.g. redirected
+  // away from a colliding id) — worth surfacing, but not a failure.
+  const result = { created: 0, updated: 0, errors: [], notes: [] };
 
   const tx = db.transaction(() => {
     rows.forEach((row, idx) => {
@@ -349,22 +352,25 @@ router.post('/import/items.csv', fileUpload.single('file'), (req, res) => {
         image: row.image || null,
       };
 
+      // A CSV from somewhere other than this menu's own export (a different POS, a
+      // hand-built file) typically has its own `id` column — row numbering from its
+      // source, with no relation to this database. Trusting it blindly is dangerous
+      // two ways: a number that happens to already belong to an unrelated item here
+      // would get silently overwritten, and — far more commonly for a brand-new
+      // import — numbers that don't exist here *at all* yet would wrongly reject
+      // every single row instead of just creating them. So the id is only ever used
+      // to match when it points to an item already in this row's resolved category
+      // (a genuine re-import of a file this app exported itself); anything else,
+      // including no match at all, falls back to matching by name within the
+      // category — which creates a new item when that doesn't match either.
       const idCell = (row.id || '').trim();
       let existingId = null;
       if (idCell) {
         const existing = findById.get(idCell);
-        if (!existing) { result.errors.push({ line, message: `item id ${idCell} not found` }); return; }
-        // A CSV from somewhere other than this menu's own export (a different POS, a
-        // hand-built file) can have an `id` column that's just row numbering from its
-        // source, with no relation to this database — if that number happens to match
-        // an unrelated existing item's primary key here, blindly trusting it would
-        // silently overwrite that item with this row's data. Only trust the id if the
-        // item it points to is already in the category this row resolves to — the
-        // normal case for a genuine re-import of a file this app exported itself.
-        if (existing.category_id === categoryId) {
+        if (existing && existing.category_id === categoryId) {
           existingId = existing.id;
-        } else {
-          result.errors.push({ line, message: `item id ${idCell} belongs to a different category — matched by name instead to avoid overwriting it` });
+        } else if (existing) {
+          result.notes.push({ line, message: `item id ${idCell} belongs to a different category — matched by name instead to avoid overwriting it` });
         }
       }
       if (existingId === null) {

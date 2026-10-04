@@ -91,6 +91,7 @@ export default function ImportExportPanel({ onImported }) {
               ✓ created {result.created}, updated {result.updated}
               {result.categoriesCreated ? `, ${result.categoriesCreated} new categor${result.categoriesCreated === 1 ? 'y' : 'ies'}` : ''}
               {result.errors.length ? `, ${result.errors.length} error(s)` : ''}
+              {result.notes?.length ? `, ${result.notes.length} note(s)` : ''}
             </div>
           ) : (
             <div>
@@ -106,6 +107,14 @@ export default function ImportExportPanel({ onImported }) {
                 </li>
               ))}
               {result.errors.length > 10 ? <li>…and {result.errors.length - 10} more</li> : null}
+            </ul>
+          )}
+          {result.notes?.length > 0 && (
+            <ul style={{ margin: '8px 0 0', paddingInlineStart: 18, color: colors.muted }}>
+              {result.notes.slice(0, 10).map((n, i) => (
+                <li key={i}>line {n.line}: {n.message}</li>
+              ))}
+              {result.notes.length > 10 ? <li>…and {result.notes.length - 10} more</li> : null}
             </ul>
           )}
         </div>
