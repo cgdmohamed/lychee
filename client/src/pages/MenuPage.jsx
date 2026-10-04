@@ -4,12 +4,17 @@ import { getStrings } from '../i18n';
 import ImageSlot from '../components/ImageSlot.jsx';
 import ItemRow from '../components/ItemRow.jsx';
 import ItemModal from '../components/ItemModal.jsx';
-import { InstagramIcon, TikTokIcon, SnapchatIcon } from '../components/SocialIcons.jsx';
+import { InstagramIcon, TikTokIcon, SnapchatIcon, FacebookIcon, XIcon, YouTubeIcon, ThreadsIcon } from '../components/SocialIcons.jsx';
+import { applyBrandColors, applyFavicon } from '../siteSettings.js';
 
 const SOCIAL_PLATFORMS = [
   { key: 'instagram', Icon: InstagramIcon, name: 'Instagram' },
   { key: 'tiktok', Icon: TikTokIcon, name: 'TikTok' },
   { key: 'snapchat', Icon: SnapchatIcon, name: 'Snapchat' },
+  { key: 'facebook', Icon: FacebookIcon, name: 'Facebook' },
+  { key: 'x', Icon: XIcon, name: 'X' },
+  { key: 'youtube', Icon: YouTubeIcon, name: 'YouTube' },
+  { key: 'threads', Icon: ThreadsIcon, name: 'Threads' },
 ];
 
 export default function MenuPage() {
@@ -45,13 +50,21 @@ export default function MenuPage() {
     if (activeItemId != null) logEvent('item_view', { itemId: activeItemId });
   }, [activeItemId]);
 
-  // Apply admin-set brand colors (falls back to the CSS defaults in index.css
-  // when a setting is unset, so an unconfigured restaurant sees no change).
+  // Apply admin-set brand colors + favicon (falls back to the CSS/HTML defaults
+  // when unset, so an unconfigured restaurant sees no change).
   useEffect(() => {
     if (!menu) return;
-    const root = document.documentElement;
-    if (menu.settings.theme_primary) root.style.setProperty('--brand-primary', menu.settings.theme_primary);
-    if (menu.settings.theme_accent) root.style.setProperty('--brand-accent', menu.settings.theme_accent);
+    applyBrandColors(menu.settings);
+    applyFavicon(menu.settings);
+  }, [menu]);
+
+  // Start on the admin-configured default language once the menu loads. Only runs on
+  // that first load (menu goes null -> loaded once), so it can't clobber a language
+  // the visitor already picked via the toggle button.
+  useEffect(() => {
+    if (menu?.settings.default_lang === 'ar' || menu?.settings.default_lang === 'en') {
+      setLang(menu.settings.default_lang);
+    }
   }, [menu]);
 
   const strings = useMemo(() => getStrings(lang, menu?.settings), [lang, menu?.settings]);
@@ -65,7 +78,9 @@ export default function MenuPage() {
 
   const activeCategory = menu.categories.find(c => c.key === activeCat) || menu.categories[0];
   const activeItem = activeCategory?.items.find(i => i.id === activeItemId) || null;
-  const brandName = menu.settings.brand_name || "lychee's";
+  const brandName = strings.isAr
+    ? (menu.settings.brand_name_ar || 'لايتشي')
+    : (menu.settings.brand_name_en || "lychee's");
   const logoSrc = menu.settings.logoImage || '/assets/logo.svg';
   const socialLinks = SOCIAL_PLATFORMS
     .map(p => ({ ...p, href: menu.settings[`social_${p.key}`] }))

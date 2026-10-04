@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import AdminHeader from '../components/admin/AdminHeader.jsx';
-import { colors, font, headingFont, button, card, sectionTitle } from '../admin/theme';
+import { colors, brand, font, headingFont, button, card, sectionTitle } from '../admin/theme';
 
 function StatTile({ value, label: tileLabel }) {
   return (
     <div style={{ ...card(), textAlign: 'center', flex: '1 1 140px' }} className="admin-card">
-      <div style={{ fontFamily: headingFont, fontWeight: 700, fontSize: 28, color: colors.primary }}>{value}</div>
+      <div style={{ fontFamily: headingFont, fontWeight: 700, fontSize: 28, color: brand.primary }}>{value}</div>
       <div style={{ fontSize: 11.5, color: colors.faint, marginTop: 2 }}>{tileLabel}</div>
     </div>
   );

@@ -11,6 +11,16 @@ export const colors = {
   borderStrong: 'rgba(0,0,0,0.16)',
 };
 
+// CSS-var-backed tokens that resolve to the live admin-set brand colors (see
+// siteSettings.js's applyBrandColors, run for every admin route) — use these for
+// "brand-colored" admin chrome (buttons, active tab, stat numbers) that should follow
+// the restaurant's own color choice. Keep colors.primary/colors.accent above for spots
+// that need the literal default hex value, e.g. the Appearance page's color pickers.
+export const brand = {
+  primary: 'var(--brand-primary)',
+  accent: 'var(--brand-accent)',
+};
+
 export const font = "'Nunito Sans', sans-serif";
 export const headingFont = "'Domine', serif";
 
@@ -63,9 +73,9 @@ const buttonBase = {
 export function button(variant = 'primary', extra) {
   switch (variant) {
     case 'primary':
-      return { ...buttonBase, background: colors.primary, color: '#fff', ...extra };
+      return { ...buttonBase, background: brand.primary, color: '#fff', ...extra };
     case 'accent':
-      return { ...buttonBase, background: colors.accent, color: '#fff', ...extra };
+      return { ...buttonBase, background: brand.accent, color: '#fff', ...extra };
     case 'secondary':
       return { ...buttonBase, background: colors.cream, color: colors.ink, ...extra };
     case 'ghost':

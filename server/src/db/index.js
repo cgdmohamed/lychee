@@ -32,3 +32,12 @@ const seedSettingDefault = db.prepare('INSERT OR IGNORE INTO settings (key, valu
 seedSettingDefault.run('social_instagram', 'https://www.instagram.com/lycheesaudi');
 seedSettingDefault.run('social_tiktok', 'https://www.tiktok.com/@lycheesaudi');
 seedSettingDefault.run('social_snapchat', 'https://www.snapchat.com/add/lycheesaudi');
+
+// brand_name was a single shared-language field before it became brand_name_en/brand_name_ar.
+// Carry over whatever an admin had already typed into both, rather than silently reverting
+// to the shipped defaults; INSERT OR IGNORE means this only ever has an effect once.
+const oldBrandName = db.prepare("SELECT value FROM settings WHERE key = 'brand_name'").get();
+if (oldBrandName && oldBrandName.value) {
+  seedSettingDefault.run('brand_name_en', oldBrandName.value);
+  seedSettingDefault.run('brand_name_ar', oldBrandName.value);
+}

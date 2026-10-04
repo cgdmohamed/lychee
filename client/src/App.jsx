@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import MenuPage from './pages/MenuPage.jsx';
 import AdminLogin from './pages/AdminLogin.jsx';
@@ -6,9 +7,20 @@ import AdminSiteText from './pages/AdminSiteText.jsx';
 import AdminAnalytics from './pages/AdminAnalytics.jsx';
 import AdminAppearance from './pages/AdminAppearance.jsx';
 import AdminBrand from './pages/AdminBrand.jsx';
-import { getToken } from './api';
+import { api, getToken } from './api';
+import { applyBrandColors, applyFavicon } from './siteSettings.js';
 
 function RequireAuth({ children }) {
+  // Applied once here (rather than per-page) so every admin page reflects the
+  // restaurant's own brand colors/favicon, not just the public menu.
+  useEffect(() => {
+    if (!getToken()) return;
+    api.getSettings().then(s => {
+      applyBrandColors(s);
+      applyFavicon(s);
+    }).catch(() => {});
+  }, []);
+
   if (!getToken()) return <Navigate to="/admin/login" replace />;
   return children;
 }

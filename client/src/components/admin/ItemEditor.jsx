@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../api';
 import ImageSlot from '../ImageSlot.jsx';
 import BuildConfigEditor from './BuildConfigEditor.jsx';
-import { colors, font, field, label, fieldGroup, button } from '../../admin/theme';
+import { colors, brand, font, field, label, fieldGroup, button } from '../../admin/theme';
 
 function fieldsFromItem(item) {
   return {
@@ -116,7 +116,7 @@ export default function ItemEditor({ item, onChanged, onDeleted, onMoveUp, onMov
               {badges.map(b => (
                 <span key={b} style={{
                   fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em',
-                  color: colors.accent, background: 'rgba(111,160,136,0.12)', padding: '1px 7px', borderRadius: 999,
+                  color: brand.accent, background: 'rgba(111,160,136,0.12)', padding: '1px 7px', borderRadius: 999,
                 }}>
                   {b}
                 </span>

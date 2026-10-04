@@ -40,7 +40,11 @@ export default function ItemRow({ item, lang, strings, onOpenInfo, builderOpen, 
               ) : null}
             </div>
             <div style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 5, fontFamily: strings.bodyFont, fontWeight: 700, fontSize: 16, color: '#171a18' }}>
-              <img src="/assets/ryal.svg" alt="SAR" style={{ height: 13, width: 'auto' }} />
+              {strings.currencyLabel ? (
+                <span>{strings.currencyLabel}</span>
+              ) : (
+                <img src="/assets/ryal.svg" alt="SAR" style={{ height: 13, width: 'auto' }} />
+              )}
               {item.price}
             </div>
           </div>

@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { setToken } from '../../api';
-import { colors, button } from '../../admin/theme';
+import { colors, brand, button } from '../../admin/theme';
 
 const TABS = [
   { to: '/admin', label: 'menu', end: true },
@@ -28,7 +28,7 @@ export default function AdminHeader() {
           <img src="/assets/logo.svg" alt="lychee's" style={{ height: 18 }} />
           <span style={{
             fontSize: 10.5, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
-            color: colors.accent, background: 'rgba(111,160,136,0.12)', padding: '3px 9px', borderRadius: 999,
+            color: brand.accent, background: 'rgba(111,160,136,0.12)', padding: '3px 9px', borderRadius: 999,
           }}>
             admin
           </span>
@@ -51,8 +51,8 @@ export default function AdminHeader() {
               fontSize: 12.5,
               fontWeight: 700,
               textDecoration: 'none',
-              color: isActive ? colors.primary : colors.muted,
-              borderBottom: isActive ? `2px solid ${colors.primary}` : '2px solid transparent',
+              color: isActive ? brand.primary : colors.muted,
+              borderBottom: isActive ? `2px solid ${brand.primary}` : '2px solid transparent',
             })}
           >
             {tab.label}

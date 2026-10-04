@@ -87,9 +87,9 @@ export default function AdminAppearance() {
           <div style={card()} className="admin-card">
             <div style={sectionTitle()}>brand colors</div>
             <p style={{ fontSize: 12.5, color: colors.faint, margin: '0 0 14px' }}>
-              These two colors drive the public menu's buttons, badges, highlights, and the "order
-              on WhatsApp" accents. The admin dashboard itself always keeps its own fixed colors,
-              so a brand choice here can never make this dashboard hard to read.
+              These two colors drive the public menu's buttons, badges, and highlights — and this
+              admin dashboard's own buttons and active tab too, so pick something you can still
+              read white text on.
             </p>
             <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
               <ColorField labelText="primary" value={primary} onChange={setPrimary} />

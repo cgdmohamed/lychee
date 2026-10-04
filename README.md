@@ -39,10 +39,10 @@ A bilingual (EN/AR) digital restaurant menu with an admin CMS.
   table. Registry lives in `client/src/textFields.js`; leaving a field blank falls back to
   its shipped default.
 - **Appearance / brand colors** (`/admin/appearance`) — a primary and accent color picker that
-  recolors the public menu's buttons, badges, and highlights (`theme_primary`/`theme_accent`
-  settings, applied as CSS custom properties on page load). The admin dashboard's own colors
-  are intentionally hardcoded and never follow this setting, so a brand choice here can't make
-  the dashboard itself unreadable.
+  recolors the public menu's buttons, badges, and highlights, and this admin dashboard's own
+  buttons and active tab too (`theme_primary`/`theme_accent` settings, applied as CSS custom
+  properties on page load — `client/src/siteSettings.js` is the shared code path both the
+  public menu and the admin area use to pick them up).
 - **Analytics** (`/admin/analytics`) — page views, item views, WhatsApp-order clicks, and QR
   scans are logged (fire-and-forget, rate-limited, no PII) as customers browse the public
   menu, and summarized on this tab alongside a "top items" breakdown by views/clicks. Events
@@ -53,14 +53,18 @@ A bilingual (EN/AR) digital restaurant menu with an admin CMS.
   logged as its own analytics event and the tag is stripped from the URL on load, so QR
   traffic is distinguishable from other visits without leaving a stray query param behind
   if the link gets shared further.
-- **Brand identity, social links & WhatsApp ordering** (`/admin/brand`) — brand name (shown in
-  the logo's alt text and the WhatsApp order message), logo upload (falls back to the shipped
-  default when unset), per-platform social links for Instagram/TikTok/Snapchat (shown as footer
-  icons, hidden automatically when blank), and the WhatsApp ordering toggle + destination number
-  — when enabled, every item's detail popup shows an "order on WhatsApp" button that opens a
-  chat pre-filled with the item name and price via the `wa.me` click-to-chat link — no cart
-  or checkout page, no WhatsApp Business API setup required. Disabled by default. All backed
-  by the generic `settings` table — an unconfigured restaurant sees no change from the shipped
+- **Brand identity, social links & WhatsApp ordering** (`/admin/brand`) — brand name, editable
+  per language (shown in the logo's alt text and the WhatsApp order message), logo + favicon
+  upload (each falls back to the shipped default when unset), a default-language switch for
+  which language the public menu opens in before a visitor picks their own, a currency field
+  (blank keeps the official Saudi Riyal symbol icon next to prices; any other value replaces
+  it with that text everywhere a price is shown), per-platform social links for
+  Instagram/TikTok/Snapchat/Facebook/X/YouTube/Threads (shown as footer icons, hidden
+  automatically when blank), and the WhatsApp ordering toggle + destination number — when
+  enabled, every item's detail popup shows an "order on WhatsApp" button that opens a chat
+  pre-filled with the item name and price via the `wa.me` click-to-chat link — no cart or
+  checkout page, no WhatsApp Business API setup required. Disabled by default. All backed by
+  the generic `settings` table — an unconfigured restaurant sees no change from the shipped
   defaults.
 
 ## Running locally

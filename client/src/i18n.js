@@ -12,9 +12,13 @@ function resolveText(settings, lang) {
 export function getStrings(lang, settings = {}) {
   const isAr = lang === 'ar';
   const text = resolveText(settings, lang);
-  // A custom brand name applies to both languages verbatim (it's one shared field);
-  // left unset, each language keeps its own original shipped default text.
-  const brandName = settings.brand_name || (isAr ? 'لايتشي' : "lychee's");
+  const brandName = isAr
+    ? (settings.brand_name_ar || 'لايتشي')
+    : (settings.brand_name_en || "lychee's");
+  // Unset (the default) keeps showing the official Saudi Riyal glyph (see the ryal.svg
+  // icon next to prices); a custom value here replaces that icon with plain text.
+  const currencyLabel = (settings.currency_symbol || '').trim();
+  const currencyText = currencyLabel || (isAr ? 'ريال' : 'SAR');
   return {
     isAr,
     dir: isAr ? 'rtl' : 'ltr',
@@ -45,7 +49,10 @@ export function getStrings(lang, settings = {}) {
     listSeparator: isAr ? '، ' : ', ',
     whatsappCta: isAr ? 'اطلب عبر واتساب' : 'order on whatsapp',
     whatsappMessage: (name, price) => (isAr
-      ? `مرحباً! أرغب بطلب: ${name} (${price} ريال) — من قائمة ${brandName}`
-      : `Hi! I'd like to order: ${name} (${price} SAR) — from the ${brandName} menu`),
+      ? `مرحباً! أرغب بطلب: ${name} (${price} ${currencyText}) — من قائمة ${brandName}`
+      : `Hi! I'd like to order: ${name} (${price} ${currencyText}) — from the ${brandName} menu`),
+    // Empty when unset: the price UI then falls back to the Riyal icon (ryal.svg)
+    // instead of this text, same as before currency became configurable.
+    currencyLabel,
   };
 }

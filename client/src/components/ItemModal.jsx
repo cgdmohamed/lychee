@@ -54,7 +54,11 @@ export default function ItemModal({ item, lang, strings, whatsapp, onClose }) {
             </button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: strings.bodyFont, fontWeight: 700, fontSize: 16, color: 'var(--brand-accent)', marginTop: 4 }}>
-            <img src="/assets/ryal.svg" alt="SAR" style={{ height: 14, width: 'auto' }} />
+            {strings.currencyLabel ? (
+              <span>{strings.currencyLabel}</span>
+            ) : (
+              <img src="/assets/ryal.svg" alt="SAR" style={{ height: 14, width: 'auto' }} />
+            )}
             {item.price}
           </div>
           {whatsapp?.enabled && whatsapp.number ? (

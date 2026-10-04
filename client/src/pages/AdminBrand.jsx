@@ -3,29 +3,39 @@ import { api } from '../api';
 import AdminHeader from '../components/admin/AdminHeader.jsx';
 import ImageSlot from '../components/ImageSlot.jsx';
 import { colors, font, headingFont, field, label, fieldGroup, button, card, sectionTitle } from '../admin/theme';
+import { applyFavicon } from '../siteSettings.js';
 
-const DEFAULT_BRAND_NAME = "lychee's";
+const DEFAULT_BRAND_NAME_EN = "lychee's";
+const DEFAULT_BRAND_NAME_AR = 'لايتشي';
 
 const SOCIAL_PLATFORMS = [
   { key: 'instagram', label: 'Instagram', placeholder: 'https://www.instagram.com/yourhandle' },
   { key: 'tiktok', label: 'TikTok', placeholder: 'https://www.tiktok.com/@yourhandle' },
   { key: 'snapchat', label: 'Snapchat', placeholder: 'https://www.snapchat.com/add/yourhandle' },
+  { key: 'facebook', label: 'Facebook', placeholder: 'https://www.facebook.com/yourpage' },
+  { key: 'x', label: 'X (Twitter)', placeholder: 'https://x.com/yourhandle' },
+  { key: 'youtube', label: 'YouTube', placeholder: 'https://www.youtube.com/@yourhandle' },
+  { key: 'threads', label: 'Threads', placeholder: 'https://www.threads.net/@yourhandle' },
 ];
 
 function BrandIdentity({ settings, onSaved }) {
-  const [name, setName] = useState(settings.brand_name || '');
+  const [nameEn, setNameEn] = useState(settings.brand_name_en || '');
+  const [nameAr, setNameAr] = useState(settings.brand_name_ar || '');
   const [saving, setSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
   const [error, setError] = useState('');
 
-  const dirty = name !== (settings.brand_name || '');
+  const dirty = nameEn !== (settings.brand_name_en || '') || nameAr !== (settings.brand_name_ar || '');
 
   async function saveName() {
     setSaving(true);
     setError('');
     try {
-      await api.setSetting('brand_name', name.trim());
-      onSaved({ brand_name: name.trim() });
+      await Promise.all([
+        api.setSetting('brand_name_en', nameEn.trim()),
+        api.setSetting('brand_name_ar', nameAr.trim()),
+      ]);
+      onSaved({ brand_name_en: nameEn.trim(), brand_name_ar: nameAr.trim() });
       setJustSaved(true);
       setTimeout(() => setJustSaved(false), 2000);
     } catch (err) {
@@ -44,41 +54,188 @@ function BrandIdentity({ settings, onSaved }) {
     }
   }
 
+  async function uploadedFavicon(url) {
+    try {
+      await api.setSetting('faviconImage', url);
+      onSaved({ faviconImage: url });
+      // Reflect immediately in this tab too — RequireAuth only applies it once, on
+      // the first mount of each admin route, so it wouldn't otherwise pick up a
+      // favicon change until the next navigation or reload.
+      applyFavicon({ faviconImage: url });
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   return (
     <div style={card()} className="admin-card">
       <div style={sectionTitle()}>brand identity</div>
-      <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-        <div style={fieldGroup({ flex: '1 1 240px' })}>
-          <label style={label()}>brand name</label>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
+        <div style={fieldGroup({ flex: '1 1 200px' })}>
+          <label style={label()}>brand name (EN)</label>
           <input
             className="admin-field"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder={DEFAULT_BRAND_NAME}
+            value={nameEn}
+            onChange={e => setNameEn(e.target.value)}
+            placeholder={DEFAULT_BRAND_NAME_EN}
             style={field()}
           />
         </div>
-        <button onClick={saveName} disabled={!dirty || saving} className="admin-btn" style={button(dirty ? 'primary' : 'ghost')}>
+        <div style={fieldGroup({ flex: '1 1 200px' })}>
+          <label style={label()}>brand name (AR)</label>
+          <input
+            className="admin-field"
+            value={nameAr}
+            onChange={e => setNameAr(e.target.value)}
+            placeholder={DEFAULT_BRAND_NAME_AR}
+            style={{ ...field(), direction: 'rtl' }}
+          />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+          <button onClick={saveName} disabled={!dirty || saving} className="admin-btn" style={button(dirty ? 'primary' : 'ghost')}>
+            {saving ? 'saving…' : justSaved ? 'saved ✓' : 'save'}
+          </button>
+        </div>
+      </div>
+      <p style={{ fontSize: 12, color: colors.faint, margin: '0 0 14px' }}>
+        Shown on the logo's alt text and in the WhatsApp order message, per language. Leave a
+        field blank to use its default.
+      </p>
+      <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+        <div>
+          <label style={label()}>logo</label>
+          <ImageSlot
+            src={settings.logoImage}
+            editable
+            onUploaded={uploadedLogo}
+            placeholder="click to upload logo"
+            shape="rect"
+            style={{ width: 220, height: 64, borderRadius: 10 }}
+          />
+          <p style={{ fontSize: 11.5, color: colors.faint, margin: '8px 0 0', maxWidth: 220 }}>
+            Shown in the public menu's header and footer. Leave unset to use the default logo.
+          </p>
+        </div>
+        <div>
+          <label style={label()}>favicon</label>
+          <ImageSlot
+            src={settings.faviconImage}
+            editable
+            onUploaded={uploadedFavicon}
+            placeholder="upload"
+            shape="rounded"
+            style={{ width: 64, height: 64, borderRadius: 10 }}
+          />
+          <p style={{ fontSize: 11.5, color: colors.faint, margin: '8px 0 0', maxWidth: 160 }}>
+            The browser tab icon. Leave unset to use the default logo mark.
+          </p>
+        </div>
+      </div>
+      {error ? <div style={{ marginTop: 10, fontSize: 12, color: colors.danger }}>{error}</div> : null}
+    </div>
+  );
+}
+
+function DefaultLanguageSettings({ settings, onSaved }) {
+  const [lang, setLang] = useState(settings.default_lang === 'ar' ? 'ar' : 'en');
+  const [saving, setSaving] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+  const [error, setError] = useState('');
+
+  const currentDefault = settings.default_lang === 'ar' ? 'ar' : 'en';
+  const dirty = lang !== currentDefault;
+
+  async function save() {
+    setSaving(true);
+    setError('');
+    try {
+      await api.setSetting('default_lang', lang);
+      onSaved({ default_lang: lang });
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 2000);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div style={card()} className="admin-card">
+      <div style={sectionTitle()}>default language</div>
+      <p style={{ fontSize: 12.5, color: colors.faint, margin: '0 0 14px' }}>
+        Which language the public menu opens in before a visitor picks their own.
+      </p>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <button
+          type="button"
+          onClick={() => setLang('en')}
+          className="admin-btn"
+          style={button(lang === 'en' ? 'accent' : 'secondary', { minWidth: 100 })}
+        >
+          English
+        </button>
+        <button
+          type="button"
+          onClick={() => setLang('ar')}
+          className="admin-btn"
+          style={button(lang === 'ar' ? 'accent' : 'secondary', { minWidth: 100 })}
+        >
+          العربية
+        </button>
+        <button onClick={save} disabled={!dirty || saving} className="admin-btn" style={button(dirty ? 'primary' : 'ghost')}>
           {saving ? 'saving…' : justSaved ? 'saved ✓' : 'save'}
         </button>
       </div>
-      <p style={{ fontSize: 12, color: colors.faint, margin: '8px 0 14px' }}>
-        Shown on the logo's alt text and in the WhatsApp order message. Leave blank to use the
-        default, "{DEFAULT_BRAND_NAME}".
+      {error ? <div style={{ marginTop: 10, fontSize: 12, color: colors.danger }}>{error}</div> : null}
+    </div>
+  );
+}
+
+function CurrencySettings({ settings, onSaved }) {
+  const [symbol, setSymbol] = useState(settings.currency_symbol || '');
+  const [saving, setSaving] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+  const [error, setError] = useState('');
+
+  const dirty = symbol !== (settings.currency_symbol || '');
+
+  async function save() {
+    setSaving(true);
+    setError('');
+    try {
+      await api.setSetting('currency_symbol', symbol.trim());
+      onSaved({ currency_symbol: symbol.trim() });
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 2000);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div style={card()} className="admin-card">
+      <div style={sectionTitle()}>currency</div>
+      <p style={{ fontSize: 12.5, color: colors.faint, margin: '0 0 14px' }}>
+        Shown next to every price. Leave blank to keep the official Saudi Riyal symbol icon;
+        set a value (e.g. "$", "AED", "USD") to show that text instead.
       </p>
-      <div>
-        <label style={label()}>logo</label>
-        <ImageSlot
-          src={settings.logoImage}
-          editable
-          onUploaded={uploadedLogo}
-          placeholder="click to upload logo"
-          shape="rect"
-          style={{ width: 220, height: 64, borderRadius: 10 }}
-        />
-        <p style={{ fontSize: 11.5, color: colors.faint, margin: '8px 0 0' }}>
-          Shown in the public menu's header and footer. Leave unset to use the default logo.
-        </p>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+        <div style={fieldGroup({ width: 140 })}>
+          <label style={label()}>currency symbol</label>
+          <input
+            className="admin-field"
+            value={symbol}
+            onChange={e => setSymbol(e.target.value)}
+            placeholder="SAR"
+            style={field()}
+          />
+        </div>
+        <button onClick={save} disabled={!dirty || saving} className="admin-btn" style={button(dirty ? 'primary' : 'ghost')}>
+          {saving ? 'saving…' : justSaved ? 'saved ✓' : 'save'}
+        </button>
       </div>
       {error ? <div style={{ marginTop: 10, fontSize: 12, color: colors.danger }}>{error}</div> : null}
     </div>
@@ -236,6 +393,8 @@ export default function AdminBrand() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <BrandIdentity settings={settings} onSaved={patch} />
+          <DefaultLanguageSettings settings={settings} onSaved={patch} />
+          <CurrencySettings settings={settings} onSaved={patch} />
           <SocialLinksSettings settings={settings} onSaved={patch} />
           <WhatsappSettings settings={settings} onSaved={patch} />
         </div>
