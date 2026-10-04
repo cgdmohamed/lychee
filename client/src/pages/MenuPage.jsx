@@ -67,6 +67,17 @@ export default function MenuPage() {
     }
   }, [menu]);
 
+  // The browser tab title is static HTML (index.html's <title>) otherwise, so it would
+  // keep showing the shipped default forever regardless of any brand name set here.
+  useEffect(() => {
+    if (!menu) return;
+    const isAr = lang === 'ar';
+    const title = isAr
+      ? (menu.settings.brand_name_ar || 'لايتشي')
+      : (menu.settings.brand_name_en || "lychee's");
+    document.title = isAr ? `${title} — القائمة` : `${title} menu`;
+  }, [menu, lang]);
+
   const strings = useMemo(() => getStrings(lang, menu?.settings), [lang, menu?.settings]);
 
   if (error) {
