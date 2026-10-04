@@ -10,7 +10,10 @@ function SpicyIcon() {
   );
 }
 
-export default function ItemRow({ item, lang, strings, onOpenInfo, builderOpen, onToggleBuilderOpen, selections, amount, onToggleOption, onSetAmount }) {
+export default function ItemRow({
+  item, lang, strings, onOpenInfo, builderOpen, onToggleBuilderOpen, selections, amount, onToggleOption, onSetAmount,
+  whatsappEnabled, onAddToCart,
+}) {
   const isAr = lang === 'ar';
   const name = isAr ? item.nameAr : item.nameEn;
   const desc = isAr ? item.descAr : item.descEn;
@@ -68,6 +71,17 @@ export default function ItemRow({ item, lang, strings, onOpenInfo, builderOpen, 
                 {builderOpen ? strings.builderCtaClose : strings.builderCtaOpen}
               </button>
             ) : null}
+            {whatsappEnabled && !hasBuilder ? (
+              <button
+                onClick={e => {
+                  e.stopPropagation();
+                  onAddToCart({ itemId: item.id, nameEn: item.nameEn, nameAr: item.nameAr, price: item.price, quantity: 1 });
+                }}
+                style={{ fontFamily: strings.bodyFont, fontSize: 12, fontWeight: 700, color: '#fffffc', background: '#25D366', border: 'none', borderRadius: 999, padding: '8px 14px', minHeight: 36, cursor: 'pointer' }}
+              >
+                + {strings.addToOrderCta}
+              </button>
+            ) : null}
           </div>
         </div>
       </div>
@@ -80,6 +94,8 @@ export default function ItemRow({ item, lang, strings, onOpenInfo, builderOpen, 
           amount={amount}
           onToggleOption={onToggleOption}
           onSetAmount={onSetAmount}
+          whatsappEnabled={whatsappEnabled}
+          onAddToCart={onAddToCart}
         />
       ) : null}
     </>

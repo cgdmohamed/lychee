@@ -70,12 +70,16 @@ A bilingual (EN/AR) digital restaurant menu with an admin CMS.
   it with that text everywhere a price is shown), per-platform social links for
   Instagram/TikTok/Snapchat/Facebook/X/YouTube/Threads (shown as footer icons, hidden
   automatically when blank), and the WhatsApp ordering toggle + destination number — when
-  enabled, every item's detail popup shows an "order on WhatsApp" button that opens a chat
-  pre-filled with a message via the `wa.me` click-to-chat link — no cart or checkout page, no
-  WhatsApp Business API setup required. Disabled by default. The message itself is editable
-  per language, with `{item}`/`{price}`/`{currency}`/`{brand}` placeholders filled in at send
-  time; leaving it blank keeps the shipped default wording. All backed by the generic
-  `settings` table — an unconfigured restaurant sees no change from the shipped defaults.
+  enabled, a floating cart button (WhatsApp icon + item count) appears on the public menu.
+  Customers add items from either the item row ("add to order") or the item detail popup
+  (with a quantity stepper), build-your-own items included with their selected options; the
+  button opens a bottom-sheet cart modal where quantities can be adjusted or lines removed,
+  and "send order on WhatsApp" opens a single `wa.me` click-to-chat link with every line plus
+  a total — no WhatsApp Business API setup required. Disabled by default. Each order line's
+  wording is editable per language, with `{qty}`/`{item}`/`{price}`/`{currency}` placeholders
+  filled in per item at send time; leaving it blank keeps the shipped default wording. All
+  backed by the generic `settings` table — an unconfigured restaurant sees no change from the
+  shipped defaults.
 
 ## Running locally
 

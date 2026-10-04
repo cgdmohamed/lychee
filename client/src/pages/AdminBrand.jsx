@@ -299,8 +299,8 @@ function SocialLinksSettings({ settings, onSaved }) {
   );
 }
 
-const DEFAULT_WHATSAPP_MESSAGE_EN = "Hi! I'd like to order: {item} ({price} {currency}) — from the {brand} menu";
-const DEFAULT_WHATSAPP_MESSAGE_AR = 'مرحباً! أرغب بطلب: {item} ({price} {currency}) — من قائمة {brand}';
+const DEFAULT_WHATSAPP_MESSAGE_EN = '{qty}x {item} — {price} {currency}';
+const DEFAULT_WHATSAPP_MESSAGE_AR = '{item} × {qty} — {price} {currency}';
 
 function WhatsappSettings({ settings, onSaved }) {
   const [enabled, setEnabled] = useState(settings.whatsapp_enabled === '1');
@@ -345,9 +345,9 @@ function WhatsappSettings({ settings, onSaved }) {
     <div style={card()} className="admin-card">
       <div style={sectionTitle()}>whatsapp ordering</div>
       <p style={{ fontSize: 12.5, color: colors.faint, margin: '0 0 14px' }}>
-        When enabled, every item's detail popup shows an "order on WhatsApp" button that opens a
-        chat pre-filled with the message below — no cart or checkout page, the customer just
-        sends it.
+        When enabled, customers can add items to a cart (from the item row or detail popup) and
+        send the whole order on WhatsApp. The format below controls how each item line reads in
+        that message — one line per item, then a total.
       </p>
       <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}>
         <button
@@ -377,7 +377,7 @@ function WhatsappSettings({ settings, onSaved }) {
 
       <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={fieldGroup()}>
-          <label style={label()}>order message (EN)</label>
+          <label style={label()}>order line format (EN)</label>
           <textarea
             className="admin-field"
             value={messageEn}
@@ -388,7 +388,7 @@ function WhatsappSettings({ settings, onSaved }) {
           />
         </div>
         <div style={fieldGroup()}>
-          <label style={label()}>order message (AR)</label>
+          <label style={label()}>order line format (AR)</label>
           <textarea
             className="admin-field"
             value={messageAr}
@@ -399,9 +399,9 @@ function WhatsappSettings({ settings, onSaved }) {
           />
         </div>
         <p style={{ fontSize: 11, color: colors.faint, margin: 0 }}>
-          Placeholders: <code>{'{item}'}</code> item name, <code>{'{price}'}</code> price,{' '}
-          <code>{'{currency}'}</code> currency, <code>{'{brand}'}</code> brand name. Leave a field
-          blank to use its default message.
+          This formats ONE line per item in the order. Placeholders: <code>{'{qty}'}</code> quantity,{' '}
+          <code>{'{item}'}</code> item name, <code>{'{price}'}</code> line price (price × qty),{' '}
+          <code>{'{currency}'}</code> currency. Leave a field blank to use its default format.
         </p>
       </div>
 

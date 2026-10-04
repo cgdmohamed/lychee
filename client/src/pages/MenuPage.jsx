@@ -4,6 +4,8 @@ import { getStrings } from '../i18n';
 import ImageSlot from '../components/ImageSlot.jsx';
 import ItemRow from '../components/ItemRow.jsx';
 import ItemModal from '../components/ItemModal.jsx';
+import CartButton from '../components/CartButton.jsx';
+import CartModal from '../components/CartModal.jsx';
 import { InstagramIcon, TikTokIcon, SnapchatIcon, FacebookIcon, XIcon, YouTubeIcon, ThreadsIcon } from '../components/SocialIcons.jsx';
 import { applyBrandColors, applyFavicon } from '../siteSettings.js';
 
@@ -26,6 +28,8 @@ export default function MenuPage() {
   const [builderOpen, setBuilderOpen] = useState({});
   const [builderSelections, setBuilderSelections] = useState({});
   const [builderAmount, setBuilderAmount] = useState({});
+  const [cart, setCart] = useState([]);
+  const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
     api.getMenu()
@@ -108,6 +112,31 @@ export default function MenuPage() {
       return { ...prev, [itemId]: itemSel };
     });
   }
+
+  // entry.buildKey distinguishes different customizations of the same item as separate
+  // cart lines (e.g. two build-your-own bowls with different picks); omitted for a plain
+  // item, so repeat adds of it just bump the one line's quantity instead of duplicating.
+  function addToCart(entry) {
+    const key = entry.buildKey ? `${entry.itemId}:${entry.buildKey}` : `${entry.itemId}`;
+    setCart(prev => {
+      const idx = prev.findIndex(l => l.key === key);
+      if (idx === -1) return [...prev, { ...entry, key }];
+      const next = [...prev];
+      next[idx] = { ...next[idx], quantity: next[idx].quantity + entry.quantity };
+      return next;
+    });
+  }
+
+  function updateCartQuantity(key, quantity) {
+    setCart(prev => (quantity <= 0 ? prev.filter(l => l.key !== key) : prev.map(l => (l.key === key ? { ...l, quantity } : l))));
+  }
+
+  function removeFromCart(key) {
+    setCart(prev => prev.filter(l => l.key !== key));
+  }
+
+  const whatsappEnabled = menu.settings.whatsapp_enabled === '1' && !!menu.settings.whatsapp_number;
+  const cartCount = cart.reduce((sum, l) => sum + l.quantity, 0);
 
   return (
     <div style={{ direction: strings.dir, fontFamily: strings.bodyFont, background: '#fffffc', color: '#171a18', minHeight: '100vh' }}>
@@ -206,6 +235,8 @@ export default function MenuPage() {
               amount={builderAmount[item.id] || 2}
               onToggleOption={(stepId, optionId, type) => toggleOption(item.id, stepId, optionId, type)}
               onSetAmount={val => setBuilderAmount(prev => ({ ...prev, [item.id]: val }))}
+              whatsappEnabled={whatsappEnabled}
+              onAddToCart={addToCart}
             />
           ))}
         </div>
@@ -243,8 +274,24 @@ export default function MenuPage() {
           item={activeItem}
           lang={lang}
           strings={strings}
-          whatsapp={{ enabled: menu.settings.whatsapp_enabled === '1', number: menu.settings.whatsapp_number }}
+          whatsappEnabled={whatsappEnabled}
+          onAddToCart={addToCart}
           onClose={() => setActiveItemId(null)}
+        />
+      ) : null}
+
+      {whatsappEnabled ? <CartButton count={cartCount} onClick={() => setCartOpen(true)} /> : null}
+
+      {cartOpen ? (
+        <CartModal
+          cart={cart}
+          lang={lang}
+          strings={strings}
+          whatsappNumber={menu.settings.whatsapp_number}
+          onClose={() => setCartOpen(false)}
+          onUpdateQuantity={updateCartQuantity}
+          onRemove={removeFromCart}
+          onSent={() => { setCart([]); setCartOpen(false); }}
         />
       ) : null}
     </div>

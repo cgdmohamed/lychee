@@ -50,3 +50,9 @@ input[type="range"] { accent-color: var(--brand-accent); }
   to { opacity: 1; transform: translateY(0); }
 }
 .admin-fade-in { animation: admin-fade-in .15s ease; }
+
+@keyframes cart-slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.cart-slide-up { animation: cart-slide-up .2s ease-out; }

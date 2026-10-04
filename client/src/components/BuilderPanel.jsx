@@ -1,5 +1,8 @@
-export default function BuilderPanel({ item, lang, strings, selections, amount, onToggleOption, onSetAmount }) {
+import { useState } from 'react';
+
+export default function BuilderPanel({ item, lang, strings, selections, amount, onToggleOption, onSetAmount, whatsappEnabled, onAddToCart }) {
   const isAr = lang === 'ar';
+  const [justAdded, setJustAdded] = useState(false);
   const summaryParts = [];
 
   const steps = item.buildConfig.map(step => {
@@ -17,6 +20,26 @@ export default function BuilderPanel({ item, lang, strings, selections, amount, 
   });
 
   const amountIdx = amount || 2;
+  const amountLabel = strings.amountNames[amountIdx - 1];
+
+  function handleAddToOrder() {
+    const buildSummary = summaryParts.length
+      ? `${summaryParts.join(strings.listSeparator)} · ${amountLabel}`
+      : amountLabel;
+    const buildKey = JSON.stringify({ selections, amount: amountIdx });
+    onAddToCart({
+      itemId: item.id,
+      nameEn: item.nameEn,
+      nameAr: item.nameAr,
+      price: item.price,
+      quantity: 1,
+      buildKey,
+      buildSummaryEn: buildSummary,
+      buildSummaryAr: buildSummary,
+    });
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 1800);
+  }
 
   return (
     <div style={{ border: '1.5px solid var(--brand-accent)', borderRadius: 20, padding: '20px 20px 22px', margin: '4px 0 18px' }}>
@@ -80,6 +103,18 @@ export default function BuilderPanel({ item, lang, strings, selections, amount, 
         <span style={{ fontWeight: 700, color: '#171a18' }}>{strings.builderSummaryLabel}</span>{' '}
         {summaryParts.length ? summaryParts.join(strings.listSeparator) : strings.builderNothingSelected}
       </div>
+      {whatsappEnabled ? (
+        <button
+          onClick={handleAddToOrder}
+          style={{
+            fontFamily: strings.bodyFont, fontSize: 13, fontWeight: 700, color: '#fffffc',
+            background: justAdded ? 'var(--brand-primary)' : '#25D366', border: 'none', borderRadius: 999,
+            padding: '10px 16px', minHeight: 40, cursor: 'pointer', marginTop: 14, width: '100%',
+          }}
+        >
+          {justAdded ? strings.addedToOrderCta : `+ ${strings.addToOrderCta}`}
+        </button>
+      ) : null}
     </div>
   );
 }

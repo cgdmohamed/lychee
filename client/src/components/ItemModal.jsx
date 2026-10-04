@@ -1,15 +1,13 @@
+import { useState } from 'react';
 import ImageSlot from './ImageSlot.jsx';
-import { logEvent } from '../api';
 
-function whatsappLink(number, text) {
-  const digits = number.replace(/[^\d]/g, '');
-  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
-}
-
-export default function ItemModal({ item, lang, strings, whatsapp, onClose }) {
+export default function ItemModal({ item, lang, strings, whatsappEnabled, onAddToCart, onClose }) {
   const isAr = lang === 'ar';
   const name = isAr ? item.nameAr : item.nameEn;
   const desc = isAr ? item.descAr : item.descEn;
+  const hasBuilder = !!(item.buildConfig && item.buildConfig.length);
+  const [qty, setQty] = useState(1);
+  const [justAdded, setJustAdded] = useState(false);
   const nutritionFacts = [
     { label: strings.nutritionLabels.cal, value: item.nutrition.cal ?? '—' },
     { label: strings.nutritionLabels.protein, value: item.nutrition.protein ?? '—' },
@@ -17,8 +15,11 @@ export default function ItemModal({ item, lang, strings, whatsapp, onClose }) {
     { label: strings.nutritionLabels.fat, value: item.nutrition.fat ?? '—' },
   ];
 
-  function handleWhatsappClick() {
-    logEvent('whatsapp_click', { itemId: item.id });
+  function handleAddToOrder() {
+    onAddToCart({ itemId: item.id, nameEn: item.nameEn, nameAr: item.nameAr, price: item.price, quantity: qty });
+    setJustAdded(true);
+    setQty(1);
+    setTimeout(() => setJustAdded(false), 1800);
   }
 
   return (
@@ -61,21 +62,40 @@ export default function ItemModal({ item, lang, strings, whatsapp, onClose }) {
             )}
             {item.price}
           </div>
-          {whatsapp?.enabled && whatsapp.number ? (
-            <a
-              href={whatsappLink(whatsapp.number, strings.whatsappMessage(name, item.price))}
-              target="_blank"
-              rel="noopener"
-              onClick={handleWhatsappClick}
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                marginTop: 16, background: '#25D366', color: '#fff', textDecoration: 'none',
-                fontFamily: strings.bodyFont, fontWeight: 700, fontSize: 14, borderRadius: 999,
-                padding: '12px 18px', minHeight: 44,
-              }}
-            >
-              {strings.whatsappCta}
-            </a>
+          {whatsappEnabled && hasBuilder ? (
+            <div style={{ fontFamily: strings.bodyFont, fontSize: 13, color: '#5a5f5a', marginTop: 16, fontStyle: 'italic' }}>
+              {strings.buildYourOwnAddNote}
+            </div>
+          ) : null}
+          {whatsappEnabled && !hasBuilder ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <button
+                  onClick={() => setQty(q => Math.max(1, q - 1))}
+                  style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid rgba(0,0,0,0.15)', background: '#fff', cursor: 'pointer', fontSize: 17, fontWeight: 700, lineHeight: 1 }}
+                >
+                  −
+                </button>
+                <span style={{ minWidth: 20, textAlign: 'center', fontWeight: 700, fontFamily: strings.bodyFont, fontSize: 15 }}>{qty}</span>
+                <button
+                  onClick={() => setQty(q => q + 1)}
+                  style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid rgba(0,0,0,0.15)', background: '#fff', cursor: 'pointer', fontSize: 17, fontWeight: 700, lineHeight: 1 }}
+                >
+                  +
+                </button>
+              </div>
+              <button
+                onClick={handleAddToOrder}
+                style={{
+                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  background: justAdded ? 'var(--brand-primary)' : '#25D366', color: '#fff', border: 'none',
+                  fontFamily: strings.bodyFont, fontWeight: 700, fontSize: 14, borderRadius: 999,
+                  padding: '12px 18px', minHeight: 44, cursor: 'pointer',
+                }}
+              >
+                {justAdded ? strings.addedToOrderCta : strings.addToOrderCta}
+              </button>
+            </div>
           ) : null}
           {desc ? (
             <div style={{ fontFamily: strings.bodyFont, fontSize: 14.5, lineHeight: 1.6, color: '#5a5f5a', marginTop: 14 }}>
