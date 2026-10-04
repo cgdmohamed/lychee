@@ -255,6 +255,7 @@ export default function AdminDashboard() {
                   <ItemEditor
                     key={item.id}
                     item={item}
+                    currencyLabel={settings.currency_symbol || 'SAR'}
                     onChanged={onItemChanged}
                     onDeleted={onItemDeleted}
                     onMoveUp={() => moveItem(item, -1)}

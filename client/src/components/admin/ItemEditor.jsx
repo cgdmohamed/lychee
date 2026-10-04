@@ -26,7 +26,7 @@ function Toggle({ active, onClick, children }) {
   );
 }
 
-export default function ItemEditor({ item, onChanged, onDeleted, onMoveUp, onMoveDown, canMoveUp, canMoveDown }) {
+export default function ItemEditor({ item, currencyLabel = 'SAR', onChanged, onDeleted, onMoveUp, onMoveDown, canMoveUp, canMoveDown }) {
   const [expanded, setExpanded] = useState(false);
   const [form, setForm] = useState(() => fieldsFromItem(item));
   const [saving, setSaving] = useState(false);
@@ -124,7 +124,7 @@ export default function ItemEditor({ item, onChanged, onDeleted, onMoveUp, onMov
             </div>
           )}
         </div>
-        <div style={{ fontWeight: 700, fontSize: 14, whiteSpace: 'nowrap', flexShrink: 0 }}>{item.price} SAR</div>
+        <div style={{ fontWeight: 700, fontSize: 14, whiteSpace: 'nowrap', flexShrink: 0 }}>{item.price} {currencyLabel}</div>
         <div style={{ display: 'flex', gap: 2, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
           <button type="button" title="move up" onClick={onMoveUp} disabled={!canMoveUp} className="admin-btn" style={button('icon')}>↑</button>
           <button type="button" title="move down" onClick={onMoveDown} disabled={!canMoveDown} className="admin-btn" style={button('icon')}>↓</button>

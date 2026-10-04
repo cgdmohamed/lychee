@@ -12,6 +12,11 @@ export default function ImageSlot({
   editable = false,
   onUploaded,
   style,
+  // 'cover' fills the box and crops any overflow — right for photos (hero, item,
+  // category images). Logos/favicons usually aren't the same aspect ratio as their
+  // box, so they need 'contain' instead, to show the whole image letterboxed rather
+  // than cropped.
+  fit = 'cover',
 }) {
   const inputRef = useRef(null);
   const [busy, setBusy] = useState(false);
@@ -55,7 +60,7 @@ export default function ImageSlot({
     >
       {src ? (
         <>
-          <img src={src} alt={alt} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          <img src={src} alt={alt} style={{ width: '100%', height: '100%', objectFit: fit, display: 'block' }} />
           {editable && hover && !busy && (
             <div style={{
               position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', color: '#fff',

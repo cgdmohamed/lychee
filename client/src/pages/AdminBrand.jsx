@@ -110,6 +110,7 @@ function BrandIdentity({ settings, onSaved }) {
             onUploaded={uploadedLogo}
             placeholder="click to upload logo"
             shape="rect"
+            fit="contain"
             style={{ width: 220, height: 64, borderRadius: 10 }}
           />
           <p style={{ fontSize: 11.5, color: colors.faint, margin: '8px 0 0', maxWidth: 220 }}>
@@ -124,6 +125,7 @@ function BrandIdentity({ settings, onSaved }) {
             onUploaded={uploadedFavicon}
             placeholder="upload"
             shape="rounded"
+            fit="contain"
             style={{ width: 64, height: 64, borderRadius: 10 }}
           />
           <p style={{ fontSize: 11.5, color: colors.faint, margin: '8px 0 0', maxWidth: 160 }}>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, setToken } from '../api';
 import { colors, font, headingFont, field, label, fieldGroup, button } from '../admin/theme';
@@ -8,7 +8,16 @@ export default function AdminLogin() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [logoSrc, setLogoSrc] = useState('/assets/logo.svg');
   const navigate = useNavigate();
+
+  // Not logged in yet, so this reads the public /api/menu endpoint (which already
+  // exposes settings) rather than the auth-gated /admin/settings.
+  useEffect(() => {
+    api.getMenu()
+      .then(m => { if (m.settings.logoImage) setLogoSrc(m.settings.logoImage); })
+      .catch(() => {});
+  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -37,7 +46,7 @@ export default function AdminLogin() {
           borderRadius: 24, boxShadow: '0 12px 40px rgba(0,68,56,0.08)',
         }}
       >
-        <img src="/assets/logo.svg" alt="lychee's" style={{ height: 22, marginBottom: 28, display: 'block' }} />
+        <img src={logoSrc} alt="logo" style={{ height: 22, width: 'auto', marginBottom: 28, display: 'block' }} />
         <h1 style={{ fontFamily: headingFont, fontWeight: 700, fontSize: 24, margin: '0 0 4px', color: colors.ink }}>
           admin login
         </h1>

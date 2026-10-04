@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { setToken } from '../../api';
+import { api, setToken } from '../../api';
 import { colors, brand, button } from '../../admin/theme';
 
 const TABS = [
@@ -12,6 +13,13 @@ const TABS = [
 
 export default function AdminHeader() {
   const navigate = useNavigate();
+  const [logoSrc, setLogoSrc] = useState('/assets/logo.svg');
+
+  useEffect(() => {
+    api.getSettings()
+      .then(s => { if (s.logoImage) setLogoSrc(s.logoImage); })
+      .catch(() => {});
+  }, []);
 
   function logout() {
     setToken(null);
@@ -25,7 +33,7 @@ export default function AdminHeader() {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 28px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <img src="/assets/logo.svg" alt="lychee's" style={{ height: 18 }} />
+          <img src={logoSrc} alt="logo" style={{ height: 18, width: 'auto' }} />
           <span style={{
             fontSize: 10.5, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
             color: brand.accent, background: 'rgba(111,160,136,0.12)', padding: '3px 9px', borderRadius: 999,
