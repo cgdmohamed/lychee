@@ -11,7 +11,7 @@ import adminRoutes from './routes/admin.js';
 import uploadRoutes from './routes/upload.js';
 import analyticsRoutes from './routes/analytics.js';
 import { uploadsDir } from './routes/upload.js';
-import './db/index.js';
+import { db } from './db/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -44,9 +44,37 @@ app.get('/api/health', (req, res) => res.json({ ok: true }));
 // block is a no-op there.
 const clientDist = path.join(__dirname, '..', '..', 'client', 'dist');
 if (fs.existsSync(clientDist)) {
-  app.use(express.static(clientDist));
+  // index.html itself isn't served by the static middleware below (index: false) —
+  // it's templated per-request instead, so the tab title and favicon are already
+  // correct in the very first response. Client-side JS (MenuPage, RequireAuth) also
+  // sets these after fetching settings, which is what used to be the *only*
+  // mechanism — on a hard page load, that left a brief flash of the shipped default
+  // ("lychee's menu" / the default logo) before the real values loaded over the
+  // network. Baking them into the HTML here closes that gap; the client-side update
+  // stays in place for in-app navigation and for settings that change live.
+  app.use(express.static(clientDist, { index: false }));
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  const indexHtmlTemplate = fs.readFileSync(path.join(clientDist, 'index.html'), 'utf-8');
+
   app.get(/^(?!\/api|\/uploads).*/, (req, res) => {
-    res.sendFile(path.join(clientDist, 'index.html'));
+    const settingsRows = db.prepare(
+      "SELECT key, value FROM settings WHERE key IN ('brand_name_en','brand_name_ar','default_lang','faviconImage')"
+    ).all();
+    const settings = Object.fromEntries(settingsRows.map(r => [r.key, r.value]));
+    const isAr = settings.default_lang === 'ar';
+    const brandName = isAr ? (settings.brand_name_ar || 'لايتشي') : (settings.brand_name_en || "lychee's");
+    const title = isAr ? `${brandName} — القائمة` : `${brandName} menu`;
+    const faviconHref = settings.faviconImage || '/assets/logo.svg';
+
+    const html = indexHtmlTemplate
+      .replace(/<title>.*?<\/title>/, `<title>${escapeHtml(title)}</title>`)
+      .replace(/(<link id="favicon-link"[^>]*href=")[^"]*(")/, `$1${escapeHtml(faviconHref)}$2`);
+
+    res.set('Content-Type', 'text/html; charset=utf-8').send(html);
   });
 }
 

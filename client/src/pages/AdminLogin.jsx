@@ -8,15 +8,17 @@ export default function AdminLogin() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [logoSrc, setLogoSrc] = useState('/assets/logo.svg');
+  // Starts unset (renders nothing) rather than the shipped default logo, so a
+  // restaurant with a custom logo never sees the old one flash while this loads.
+  const [logoSrc, setLogoSrc] = useState(null);
   const navigate = useNavigate();
 
   // Not logged in yet, so this reads the public /api/menu endpoint (which already
   // exposes settings) rather than the auth-gated /admin/settings.
   useEffect(() => {
     api.getMenu()
-      .then(m => { if (m.settings.logoImage) setLogoSrc(m.settings.logoImage); })
-      .catch(() => {});
+      .then(m => setLogoSrc(m.settings.logoImage || '/assets/logo.svg'))
+      .catch(() => setLogoSrc('/assets/logo.svg'));
   }, []);
 
   async function handleSubmit(e) {
@@ -46,7 +48,9 @@ export default function AdminLogin() {
           borderRadius: 24, boxShadow: '0 12px 40px rgba(0,68,56,0.08)',
         }}
       >
-        <img src={logoSrc} alt="logo" style={{ height: 22, width: 'auto', marginBottom: 28, display: 'block' }} />
+        <div style={{ height: 22, width: logoSrc ? 'auto' : 90, marginBottom: 28 }}>
+          {logoSrc ? <img src={logoSrc} alt="logo" style={{ height: 22, width: 'auto', display: 'block' }} /> : null}
+        </div>
         <h1 style={{ fontFamily: headingFont, fontWeight: 700, fontSize: 24, margin: '0 0 4px', color: colors.ink }}>
           admin login
         </h1>

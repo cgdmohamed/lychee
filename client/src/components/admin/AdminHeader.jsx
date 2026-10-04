@@ -13,12 +13,14 @@ const TABS = [
 
 export default function AdminHeader() {
   const navigate = useNavigate();
-  const [logoSrc, setLogoSrc] = useState('/assets/logo.svg');
+  // Starts unset (renders nothing) rather than the shipped default logo, so a
+  // restaurant with a custom logo never sees the old one flash while this loads.
+  const [logoSrc, setLogoSrc] = useState(null);
 
   useEffect(() => {
     api.getSettings()
-      .then(s => { if (s.logoImage) setLogoSrc(s.logoImage); })
-      .catch(() => {});
+      .then(s => setLogoSrc(s.logoImage || '/assets/logo.svg'))
+      .catch(() => setLogoSrc('/assets/logo.svg'));
   }, []);
 
   function logout() {
@@ -33,7 +35,9 @@ export default function AdminHeader() {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 28px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <img src={logoSrc} alt="logo" style={{ height: 18, width: 'auto' }} />
+          <div style={{ height: 18, width: logoSrc ? 'auto' : 60 }}>
+            {logoSrc ? <img src={logoSrc} alt="logo" style={{ height: 18, width: 'auto', display: 'block' }} /> : null}
+          </div>
           <span style={{
             fontSize: 10.5, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
             color: brand.accent, background: 'rgba(111,160,136,0.12)', padding: '3px 9px', borderRadius: 999,

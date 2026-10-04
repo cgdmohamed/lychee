@@ -124,7 +124,11 @@ cd server && NODE_ENV=production JWT_SECRET=... SEED_ADMIN_PASSWORD=... npm star
 
 The server auto-detects `client/dist` and serves it as a single-page app (with `/admin`
 client-side routing falling back to `index.html`), so in production there's just one process
-and one port — no separate reverse-proxy config needed for the two apps.
+and one port — no separate reverse-proxy config needed for the two apps. `index.html` itself
+is templated per-request (not served as a static file) so the tab title and favicon already
+reflect the current brand name/favicon settings on the very first response — without this, a
+hard page load would briefly show the shipped defaults before the client-side JS fetched
+settings and swapped them in.
 
 **`JWT_SECRET` and `SEED_ADMIN_PASSWORD` are required when `NODE_ENV=production`** — the
 process refuses to start without them, rather than silently falling back to the placeholder
