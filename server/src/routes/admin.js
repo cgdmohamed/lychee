@@ -273,6 +273,26 @@ router.post('/import/items.csv', fileUpload.single('file'), (req, res) => {
 
   const categories = db.prepare('SELECT id, key FROM categories').all();
   const catIdByKey = Object.fromEntries(categories.map(c => [c.key, c.id]));
+  const insertCategory = db.prepare('INSERT INTO categories (key, name_en, name_ar, sort_order) VALUES (?, ?, ?, ?)');
+
+  // The CSV format's only way to identify a category is its key (no display-name
+  // columns), so a key this file hasn't seen before gets created on the fly — the
+  // import's whole point is bulk-loading a menu that doesn't exist in the admin yet,
+  // and requiring every category to be hand-created first would defeat that. The
+  // display name is just title-cased from the key (e.g. "hot-drinks" -> "Hot Drinks")
+  // as a starting point; rename it from the Menu tab afterward if needed — the
+  // Arabic name in particular is a placeholder, since there's nothing to translate it
+  // from here.
+  let categoriesCreated = 0;
+  function getOrCreateCategoryId(categoryKey) {
+    if (catIdByKey[categoryKey]) return catIdByKey[categoryKey];
+    const name = categoryKey.replace(/[-_]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || categoryKey;
+    const sortOrder = nextSortOrder('categories');
+    const result = insertCategory.run(categoryKey, name, name, sortOrder);
+    catIdByKey[categoryKey] = result.lastInsertRowid;
+    categoriesCreated++;
+    return result.lastInsertRowid;
+  }
 
   const updateStmt = db.prepare(
     `UPDATE items SET category_id=@categoryId, name_en=@nameEn, name_ar=@nameAr, desc_en=@descEn, desc_ar=@descAr,
@@ -284,7 +304,7 @@ router.post('/import/items.csv', fileUpload.single('file'), (req, res) => {
      VALUES (@categoryId,@nameEn,@nameAr,@descEn,@descAr,@price,@spicy,@isNew,@collabEn,@collabAr,@nutritionEnabled,@cal,@protein,@carbs,@fat,@image,@sortOrder)`
   );
   const findByCategoryAndName = db.prepare('SELECT id FROM items WHERE category_id = ? AND name_en = ?');
-  const findById = db.prepare('SELECT id FROM items WHERE id = ?');
+  const findById = db.prepare('SELECT id, category_id FROM items WHERE id = ?');
 
   const result = { created: 0, updated: 0, errors: [] };
 
@@ -300,11 +320,7 @@ router.post('/import/items.csv', fileUpload.single('file'), (req, res) => {
         result.errors.push({ line, message: 'missing required field (category_key, name_en, name_ar, price)' });
         return;
       }
-      const categoryId = catIdByKey[categoryKey];
-      if (!categoryId) {
-        result.errors.push({ line, message: `unknown category_key "${categoryKey}"` });
-        return;
-      }
+      const categoryId = getOrCreateCategoryId(categoryKey);
       const price = Number(priceRaw);
       if (!Number.isFinite(price)) {
         result.errors.push({ line, message: `invalid price "${priceRaw}"` });
@@ -338,8 +354,20 @@ router.post('/import/items.csv', fileUpload.single('file'), (req, res) => {
       if (idCell) {
         const existing = findById.get(idCell);
         if (!existing) { result.errors.push({ line, message: `item id ${idCell} not found` }); return; }
-        existingId = existing.id;
-      } else {
+        // A CSV from somewhere other than this menu's own export (a different POS, a
+        // hand-built file) can have an `id` column that's just row numbering from its
+        // source, with no relation to this database — if that number happens to match
+        // an unrelated existing item's primary key here, blindly trusting it would
+        // silently overwrite that item with this row's data. Only trust the id if the
+        // item it points to is already in the category this row resolves to — the
+        // normal case for a genuine re-import of a file this app exported itself.
+        if (existing.category_id === categoryId) {
+          existingId = existing.id;
+        } else {
+          result.errors.push({ line, message: `item id ${idCell} belongs to a different category — matched by name instead to avoid overwriting it` });
+        }
+      }
+      if (existingId === null) {
         const existing = findByCategoryAndName.get(categoryId, nameEn);
         if (existing) existingId = existing.id;
       }
@@ -356,7 +384,7 @@ router.post('/import/items.csv', fileUpload.single('file'), (req, res) => {
   });
   tx();
 
-  res.json(result);
+  res.json({ ...result, categoriesCreated });
 });
 
 router.get('/export/menu.json', (req, res) => {

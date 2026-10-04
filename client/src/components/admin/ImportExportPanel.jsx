@@ -87,7 +87,11 @@ export default function ImportExportPanel({ onImported }) {
       {result ? (
         <div className="admin-fade-in" style={{ marginTop: 12, fontSize: 12, background: colors.cream, borderRadius: 10, padding: '10px 12px' }}>
           {result.type === 'csv' ? (
-            <div>✓ created {result.created}, updated {result.updated}{result.errors.length ? `, ${result.errors.length} error(s)` : ''}</div>
+            <div>
+              ✓ created {result.created}, updated {result.updated}
+              {result.categoriesCreated ? `, ${result.categoriesCreated} new categor${result.categoriesCreated === 1 ? 'y' : 'ies'}` : ''}
+              {result.errors.length ? `, ${result.errors.length} error(s)` : ''}
+            </div>
           ) : (
             <div>
               ✓ categories +{result.categoriesCreated}/{result.categoriesUpdated} updated · items +{result.itemsCreated}/{result.itemsUpdated} updated

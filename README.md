@@ -30,7 +30,14 @@ A bilingual (EN/AR) digital restaurant menu with an admin CMS.
   spreadsheet editing (names, descriptions, prices, badges, nutrition) and re-import to
   upsert by id or by category+name; or export/restore a full JSON backup (categories, items,
   build-your-own configs, settings). See `server/src/routes/admin.js`'s `/export/*` and
-  `/import/*` routes.
+  `/import/*` routes. A `category_key` the current menu doesn't have yet is created
+  automatically (title-cased from the key as a starting display name — rename it from the
+  Menu tab afterward if needed) rather than rejecting the row, so importing an entire menu
+  from scratch doesn't require hand-creating every category first. The `id` column is only
+  trusted as a match when that id's existing item is already in the row's resolved category —
+  guards against a CSV from a different source (a POS export, a hand-built file) whose own
+  row numbering happens to collide with an unrelated item's id here; such rows fall back to
+  matching by name within the category instead of silently overwriting the wrong item.
 - **Public menu UI** — pixel-matched to the design: sticky header with EN/AR toggle, hero image,
   circular scrollable category nav, item list with popup (photo + nutrition facts grid),
   interactive build-your-own panel (step chips + dressing-amount slider), footer with social links.
