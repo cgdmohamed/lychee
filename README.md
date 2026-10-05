@@ -54,9 +54,11 @@ A bilingual (EN/AR) digital restaurant menu with an admin CMS.
   public menu and the admin area use to pick them up).
 - **Analytics** (`/admin/analytics`) — page views, item views, and WhatsApp-order clicks are
   logged (fire-and-forget, rate-limited, no PII) as customers browse the public menu, and
-  summarized on this tab alongside a "top items" breakdown by views/clicks. A duration filter
-  (today / 7 / 30 / 90 days / all time) and source/category filters narrow all of it down to a
-  specific time window, a specific QR code or ad link, or a specific menu category. Events
+  summarized on this tab as stat tiles, a daily trend line chart, and a "top items" bar chart
+  (each chart also offers a plain table view). A duration filter (today / 7 / 30 / 90 days /
+  all time) and source/category filters narrow all of it down to a specific time window, a
+  specific QR code or ad link, or a specific menu category. If a fetch fails, the tab keeps
+  showing whatever it last loaded (dimmed) with a retry button, instead of going blank. Events
   reference items/categories by id without a foreign key, so deleting a menu item later never
   blocks or cascade-deletes its historical analytics.
 - **Named QR codes & links with per-code stats** (`/admin/analytics`) — generate any number of

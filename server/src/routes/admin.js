@@ -634,7 +634,21 @@ router.get('/analytics', (req, res) => {
     LIMIT 20
   `).all(itemParams);
 
-  res.json({ totals, topItems });
+  // Daily breakdown for the trend chart — same from/to/source scope as the totals
+  // above (not categoryId, which only narrows the item-level breakdown), one row per
+  // day that had at least one event. The client fills in zero-activity days itself.
+  const series = db.prepare(`
+    SELECT date(created_at) AS day,
+      SUM(CASE WHEN type = 'page_view' THEN 1 ELSE 0 END) AS pageViews,
+      SUM(CASE WHEN type = 'item_view' THEN 1 ELSE 0 END) AS itemViews,
+      SUM(CASE WHEN type = 'whatsapp_click' THEN 1 ELSE 0 END) AS whatsappClicks
+    FROM analytics_events
+    WHERE 1=1 ${whereClause}
+    GROUP BY day
+    ORDER BY day ASC
+  `).all(params);
+
+  res.json({ totals, topItems, series });
 });
 
 // ---- QR codes (named per branch/ad/table tent, each independently trackable) ----
