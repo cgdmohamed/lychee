@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api, setToken } from '../api';
 import { colors, font, headingFont, field, label, fieldGroup, button } from '../admin/theme';
 
@@ -12,6 +12,11 @@ export default function AdminLogin() {
   // restaurant with a custom logo never sees the old one flash while this loads.
   const [logoSrc, setLogoSrc] = useState(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Only accept an internal admin path — never forward an absolute URL from the
+  // query string, which would make this an open redirect.
+  const rawNext = searchParams.get('next') || '';
+  const next = rawNext.startsWith('/admin') ? rawNext : '/admin';
 
   // Not logged in yet, so this reads the public /api/menu endpoint (which already
   // exposes settings) rather than the auth-gated /admin/settings.
@@ -28,7 +33,7 @@ export default function AdminLogin() {
     try {
       const { token } = await api.login(email, password);
       setToken(token);
-      navigate('/admin', { replace: true });
+      navigate(next, { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {

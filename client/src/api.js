@@ -8,6 +8,20 @@ export function setToken(token) {
   else localStorage.removeItem(TOKEN_KEY);
 }
 
+// A stale/expired JWT surfaces as a 401 from any admin endpoint, often minutes or
+// hours into a session (the token's 12h expiry, or a server restart with a new
+// secret) — long after the login form is out of view. Rather than every admin page
+// having to notice this itself and show a dead-end error, handle it once here: drop
+// the bad token and bounce to the login screen, preserving the page so a re-login
+// lands back where the admin was.
+function handleUnauthorized() {
+  setToken(null);
+  if (!window.location.pathname.startsWith('/admin/login')) {
+    const next = encodeURIComponent(window.location.pathname + window.location.search);
+    window.location.href = `/admin/login?next=${next}`;
+  }
+}
+
 async function request(path, { method = 'GET', body, auth = false } = {}) {
   const headers = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
@@ -20,6 +34,7 @@ async function request(path, { method = 'GET', body, auth = false } = {}) {
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
+  if (res.status === 401 && auth) handleUnauthorized();
   if (res.status === 204) return null;
   const data = await res.json().catch(() => null);
   if (!res.ok) {
@@ -89,6 +104,7 @@ async function uploadFile(path, file, fieldName = 'file') {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: form,
   });
+  if (res.status === 401) handleUnauthorized();
   const data = await res.json().catch(() => null);
   if (!res.ok) throw new Error((data && data.error) || 'upload failed');
   return data;
@@ -99,6 +115,7 @@ async function downloadFile(path, filename) {
   const res = await fetch(`/api${path}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
+  if (res.status === 401) handleUnauthorized();
   if (!res.ok) {
     const data = await res.json().catch(() => null);
     throw new Error((data && data.error) || `download failed (${res.status})`);
