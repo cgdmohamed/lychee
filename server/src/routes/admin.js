@@ -581,14 +581,46 @@ router.post('/optimize-images', async (req, res) => {
 
 // ---- Analytics ----
 
+// `from`/`to` are inclusive ISO date(-time) strings compared against created_at's
+// 'datetime('now')' text format, which sorts/compares correctly as plain strings.
+// Anything that doesn't parse as a date is ignored rather than erroring, so a stray
+// or malformed query param just falls back to "no bound" instead of a 500.
+function parseDateBound(value) {
+  if (!value || Number.isNaN(Date.parse(value))) return null;
+  return value;
+}
+
 router.get('/analytics', (req, res) => {
-  const countByType = type => db.prepare('SELECT COUNT(*) AS c FROM analytics_events WHERE type = ?').get(type).c;
+  const from = parseDateBound(req.query.from);
+  const to = parseDateBound(req.query.to);
+  const source = typeof req.query.source === 'string' && req.query.source ? req.query.source : null;
+  const categoryId = req.query.categoryId ? Number(req.query.categoryId) : null;
+
+  // Qualified with the table name since these conditions are reused in a query that
+  // joins analytics_events to items — both of which have their own created_at column.
+  const conditions = [];
+  const params = {};
+  if (from) { conditions.push('analytics_events.created_at >= @from'); params.from = from; }
+  if (to) { conditions.push('analytics_events.created_at <= @to'); params.to = to; }
+  if (source) { conditions.push('analytics_events.source = @source'); params.source = source; }
+  const whereClause = conditions.length ? `AND ${conditions.join(' AND ')}` : '';
+
+  const countByType = type =>
+    db.prepare(`SELECT COUNT(*) AS c FROM analytics_events WHERE type = @type ${whereClause}`)
+      .get({ type, ...params }).c;
+
   const totals = {
     pageViews: countByType('page_view'),
     itemViews: countByType('item_view'),
     whatsappClicks: countByType('whatsapp_click'),
-    qrScans: db.prepare("SELECT COUNT(*) AS c FROM analytics_events WHERE source = 'qr'").get().c,
   };
+
+  const itemParams = { ...params };
+  let itemWhereClause = whereClause;
+  if (categoryId) {
+    itemParams.categoryId = categoryId;
+    itemWhereClause += ' AND items.category_id = @categoryId';
+  }
 
   const topItems = db.prepare(`
     SELECT items.id, items.name_en AS nameEn, items.name_ar AS nameAr,
@@ -596,30 +628,94 @@ router.get('/analytics', (req, res) => {
       SUM(CASE WHEN analytics_events.type = 'whatsapp_click' THEN 1 ELSE 0 END) AS whatsappClicks
     FROM analytics_events
     JOIN items ON items.id = analytics_events.item_id
-    WHERE analytics_events.item_id IS NOT NULL
+    WHERE analytics_events.item_id IS NOT NULL ${itemWhereClause}
     GROUP BY items.id
     ORDER BY views DESC, whatsappClicks DESC
     LIMIT 20
-  `).all();
+  `).all(itemParams);
 
   res.json({ totals, topItems });
 });
 
-// ---- QR code (links to the public menu, tagged so scans are attributable in analytics) ----
+// ---- QR codes (named per branch/ad/table tent, each independently trackable) ----
 
-router.get('/qr-code', async (req, res) => {
+function uniqueQrSlug(label) {
+  const base = slugify(label) || 'qr';
+  const exists = db.prepare('SELECT 1 FROM qr_codes WHERE slug = ?');
+  let slug = base;
+  let suffix = 2;
+  while (exists.get(slug)) {
+    slug = `${base}-${suffix}`;
+    suffix++;
+  }
+  return slug;
+}
+
+async function qrCodePayload(req, row) {
   const baseUrl = `${req.protocol}://${req.get('host')}`;
-  const targetUrl = `${baseUrl}/?src=qr`;
+  const targetUrl = `${baseUrl}/?src=${row.slug}`;
+  const dataUrl = await QRCode.toDataURL(targetUrl, {
+    width: 512,
+    margin: 2,
+    color: { dark: '#004438', light: '#fffffc' },
+  });
+  return {
+    id: row.id,
+    label: row.label,
+    slug: row.slug,
+    createdAt: row.created_at,
+    scans: row.scans || 0,
+    itemViews: row.itemViews || 0,
+    whatsappClicks: row.whatsappClicks || 0,
+    targetUrl,
+    dataUrl,
+  };
+}
+
+router.get('/qr-codes', async (req, res) => {
+  const from = parseDateBound(req.query.from);
+  const to = parseDateBound(req.query.to);
+
+  const conditions = ['ae.source = qr_codes.slug'];
+  const params = {};
+  if (from) { conditions.push('ae.created_at >= @from'); params.from = from; }
+  if (to) { conditions.push('ae.created_at <= @to'); params.to = to; }
+
+  const rows = db.prepare(`
+    SELECT qr_codes.id, qr_codes.label, qr_codes.slug, qr_codes.created_at,
+      SUM(CASE WHEN ae.type = 'page_view' THEN 1 ELSE 0 END) AS scans,
+      SUM(CASE WHEN ae.type = 'item_view' THEN 1 ELSE 0 END) AS itemViews,
+      SUM(CASE WHEN ae.type = 'whatsapp_click' THEN 1 ELSE 0 END) AS whatsappClicks
+    FROM qr_codes
+    LEFT JOIN analytics_events ae ON ${conditions.join(' AND ')}
+    GROUP BY qr_codes.id
+    ORDER BY qr_codes.created_at DESC
+  `).all(params);
+
   try {
-    const dataUrl = await QRCode.toDataURL(targetUrl, {
-      width: 512,
-      margin: 2,
-      color: { dark: '#004438', light: '#fffffc' },
-    });
-    res.json({ targetUrl, dataUrl });
+    res.json(await Promise.all(rows.map(row => qrCodePayload(req, row))));
+  } catch {
+    res.status(500).json({ error: 'failed to generate QR codes' });
+  }
+});
+
+router.post('/qr-codes', async (req, res) => {
+  const label = typeof req.body?.label === 'string' ? req.body.label.trim().slice(0, 60) : '';
+  if (!label) return res.status(400).json({ error: 'label is required' });
+
+  const slug = uniqueQrSlug(label);
+  const info = db.prepare('INSERT INTO qr_codes (label, slug) VALUES (?, ?)').run(label, slug);
+  const row = db.prepare('SELECT * FROM qr_codes WHERE id = ?').get(info.lastInsertRowid);
+  try {
+    res.status(201).json(await qrCodePayload(req, row));
   } catch {
     res.status(500).json({ error: 'failed to generate QR code' });
   }
+});
+
+router.delete('/qr-codes/:id', (req, res) => {
+  db.prepare('DELETE FROM qr_codes WHERE id = ?').run(req.params.id);
+  res.status(204).end();
 });
 
 export default router;

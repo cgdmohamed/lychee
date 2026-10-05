@@ -52,16 +52,21 @@ A bilingual (EN/AR) digital restaurant menu with an admin CMS.
   buttons and active tab too (`theme_primary`/`theme_accent` settings, applied as CSS custom
   properties on page load — `client/src/siteSettings.js` is the shared code path both the
   public menu and the admin area use to pick them up).
-- **Analytics** (`/admin/analytics`) — page views, item views, WhatsApp-order clicks, and QR
-  scans are logged (fire-and-forget, rate-limited, no PII) as customers browse the public
-  menu, and summarized on this tab alongside a "top items" breakdown by views/clicks. Events
+- **Analytics** (`/admin/analytics`) — page views, item views, and WhatsApp-order clicks are
+  logged (fire-and-forget, rate-limited, no PII) as customers browse the public menu, and
+  summarized on this tab alongside a "top items" breakdown by views/clicks. A duration filter
+  (today / 7 / 30 / 90 days / all time) and source/category filters narrow all of it down to a
+  specific time window, a specific QR code or ad link, or a specific menu category. Events
   reference items/categories by id without a foreign key, so deleting a menu item later never
   blocks or cascade-deletes its historical analytics.
-- **QR code with scan tracking** (`/admin/analytics`) — generates a QR code pointing at the
-  public menu (tagged `?src=qr`), downloadable as a PNG for table tents/flyers. A scan is
-  logged as its own analytics event and the tag is stripped from the URL on load, so QR
-  traffic is distinguishable from other visits without leaving a stray query param behind
-  if the link gets shared further.
+- **Named QR codes & links with per-code stats** (`/admin/analytics`) — generate any number of
+  independently trackable QR codes/links (one per branch, table tent, or ad campaign), each a
+  PNG downloadable for print and pointing at the public menu tagged `?src=<slug>`. Scanning one
+  marks the browser tab for the rest of that visit, so a code's stats cover not just the scan
+  itself but the item views and WhatsApp clicks that followed from it — letting you compare,
+  say, an Instagram bio link against a table QR code on actual engagement, not just traffic.
+  The tag is stripped from the URL on load so sharing/refreshing doesn't keep re-logging it.
+  Deleting a code removes it from the list but keeps its historical events intact.
 - **Brand identity, social links & WhatsApp ordering** (`/admin/brand`) — brand name, editable
   per language (shown in the logo's alt text and the WhatsApp order message), logo + favicon
   upload (each falls back to the shipped default when unset), a default-language switch for
@@ -195,4 +200,4 @@ A container healthcheck hits `/api/health`.
 ## Data model
 
 SQLite tables: `categories`, `items`, `build_steps`, `build_options`, `settings` (key/value,
-e.g. `heroImage`), `admin_users`, `analytics_events`. See `server/src/db/schema.sql`.
+e.g. `heroImage`), `admin_users`, `analytics_events`, `qr_codes`. See `server/src/db/schema.sql`.

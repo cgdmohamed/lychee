@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { api, logEvent } from '../api';
+import { api, logEvent, captureAttribution } from '../api';
 import { getStrings } from '../i18n';
 import ImageSlot from '../components/ImageSlot.jsx';
 import ItemRow from '../components/ItemRow.jsx';
@@ -40,12 +40,15 @@ export default function MenuPage() {
       .catch(err => setError(err.message));
   }, []);
 
-  // Tag a visit that came in via the QR code so it's attributable in analytics,
-  // then tidy the URL so sharing/refreshing doesn't keep re-logging it.
+  // Tag a visit that came in via a QR code or shared ad link (?src=<slug>) so it's
+  // attributable in analytics — both this page view and every event logged for the
+  // rest of this tab's session (see captureAttribution) — then tidy the URL so
+  // sharing/refreshing doesn't keep re-logging it.
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('src') === 'qr') {
-      logEvent('page_view', { source: 'qr' });
+    const src = new URLSearchParams(window.location.search).get('src');
+    if (src) {
+      captureAttribution();
+      logEvent('page_view', { source: src.slice(0, 40) });
       window.history.replaceState(null, '', window.location.pathname);
     }
   }, []);

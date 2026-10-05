@@ -79,3 +79,15 @@ CREATE INDEX IF NOT EXISTS idx_build_options_step ON build_options(step_id);
 CREATE INDEX IF NOT EXISTS idx_analytics_type ON analytics_events(type);
 CREATE INDEX IF NOT EXISTS idx_analytics_item ON analytics_events(item_id);
 CREATE INDEX IF NOT EXISTS idx_analytics_created ON analytics_events(created_at);
+CREATE INDEX IF NOT EXISTS idx_analytics_source ON analytics_events(source);
+
+-- A named, independently trackable QR code or shared link (a branch, a table tent, an
+-- ad campaign). Its slug is the ?src= value visitors land on; analytics_events.source
+-- is matched against it by value, not a foreign key, for the same reason analytics
+-- doesn't FK to items/categories — deleting a code shouldn't touch its historical scans.
+CREATE TABLE IF NOT EXISTS qr_codes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  label TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);

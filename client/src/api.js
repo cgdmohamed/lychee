@@ -75,9 +75,41 @@ export const api = {
 
   optimizeImages: () => request('/admin/optimize-images', { method: 'POST', auth: true }),
 
-  getAnalytics: () => request('/admin/analytics', { auth: true }),
-  getQrCode: () => request('/admin/qr-code', { auth: true }),
+  getAnalytics: (filters = {}) => request(`/admin/analytics${toQueryString(filters)}`, { auth: true }),
+  getQrCodes: (filters = {}) => request(`/admin/qr-codes${toQueryString(filters)}`, { auth: true }),
+  createQrCode: label => request('/admin/qr-codes', { method: 'POST', auth: true, body: { label } }),
+  deleteQrCode: id => request(`/admin/qr-codes/${id}`, { method: 'DELETE', auth: true }),
 };
+
+function toQueryString(params) {
+  const entries = Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== '');
+  if (!entries.length) return '';
+  return `?${new URLSearchParams(entries).toString()}`;
+}
+
+const ATTRIBUTION_KEY = 'lychee_attribution_source';
+
+// Visiting via a tagged QR code or ad link (?src=<slug>) marks the browser tab's
+// session so every event logged afterwards — not just the initial page view — is
+// attributed to that code, letting a branch/campaign's stats include downstream item
+// views and WhatsApp clicks, not just the scan itself.
+export function captureAttribution() {
+  try {
+    const src = new URLSearchParams(window.location.search).get('src');
+    if (src) sessionStorage.setItem(ATTRIBUTION_KEY, src.slice(0, 40));
+  } catch {
+    // sessionStorage can throw in a locked-down browsing context; attribution is a
+    // nice-to-have, never worth breaking the page over.
+  }
+}
+
+function attributedSource() {
+  try {
+    return sessionStorage.getItem(ATTRIBUTION_KEY);
+  } catch {
+    return null;
+  }
+}
 
 // Fire-and-forget: a tracking call failing (network hiccup, rate limit) should
 // never break the page for the person using it.
@@ -85,7 +117,7 @@ export function logEvent(type, { itemId, categoryId, source } = {}) {
   fetch('/api/analytics/event', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type, itemId, categoryId, source }),
+    body: JSON.stringify({ type, itemId, categoryId, source: source || attributedSource() || undefined }),
     keepalive: true,
   }).catch(() => {});
 }

@@ -41,3 +41,9 @@ if (oldBrandName && oldBrandName.value) {
   seedSettingDefault.run('brand_name_en', oldBrandName.value);
   seedSettingDefault.run('brand_name_ar', oldBrandName.value);
 }
+
+// Before named per-branch/ad QR codes existed, the single generated QR always pointed
+// at ?src=qr. Seed it as a "General" entry so an already-printed sticker keeps
+// attributing its scans to a named row instead of losing attribution the moment this
+// ships; INSERT OR IGNORE means this only ever has an effect once.
+db.prepare('INSERT OR IGNORE INTO qr_codes (label, slug) VALUES (?, ?)').run('General', 'qr');
