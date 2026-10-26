@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../api';
 import ImageSlot from '../ImageSlot.jsx';
 import BuildConfigEditor from './BuildConfigEditor.jsx';
+import { ALLERGENS } from '../../allergens.js';
 import { colors, brand, font, field, label, fieldGroup, button } from '../../admin/theme';
 
 function fieldsFromItem(item) {
@@ -10,6 +11,7 @@ function fieldsFromItem(item) {
     price: item.price, spicy: item.spicy, isNew: item.isNew, collabEn: item.collabEn || '', collabAr: item.collabAr || '',
     nutritionEnabled: item.nutritionEnabled,
     cal: item.nutrition.cal || '', protein: item.nutrition.protein || '', carbs: item.nutrition.carbs || '', fat: item.nutrition.fat || '',
+    allergens: item.allergens || [],
   };
 }
 
@@ -43,6 +45,13 @@ export default function ItemEditor({ item, currencyLabel = 'SAR', onChanged, onD
 
   function set(k, v) {
     setForm(prev => ({ ...prev, [k]: v }));
+  }
+
+  function toggleAllergen(key) {
+    setForm(prev => ({
+      ...prev,
+      allergens: prev.allergens.includes(key) ? prev.allergens.filter(k => k !== key) : [...prev.allergens, key],
+    }));
   }
 
   async function save() {
@@ -124,6 +133,14 @@ export default function ItemEditor({ item, currencyLabel = 'SAR', onChanged, onD
             </div>
           )}
         </div>
+        {item.allergens.length > 0 && (
+          <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
+            {item.allergens.map(key => {
+              const a = ALLERGENS.find(x => x.key === key);
+              return a ? <img key={key} src={a.icon} alt={a.en} title={a.en} style={{ width: 18, height: 18 }} /> : null;
+            })}
+          </div>
+        )}
         <div style={{ fontWeight: 700, fontSize: 14, whiteSpace: 'nowrap', flexShrink: 0 }}>{item.price} {currencyLabel}</div>
         <div style={{ display: 'flex', gap: 2, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
           <button type="button" title="move up" onClick={onMoveUp} disabled={!canMoveUp} className="admin-btn" style={button('icon')}>↑</button>
@@ -191,6 +208,27 @@ export default function ItemEditor({ item, currencyLabel = 'SAR', onChanged, onD
                     <input className="admin-field" value={form[k]} onChange={e => set(k, e.target.value)} style={field(80)} />
                   </div>
                 ))}
+              </div>
+            </div>
+
+            <div style={fieldGroup({ marginBottom: 12 })}>
+              <label style={label()}>allergens (shown as icons next to the item name)</label>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {ALLERGENS.map(a => {
+                  const active = form.allergens.includes(a.key);
+                  return (
+                    <button
+                      type="button"
+                      key={a.key}
+                      onClick={() => toggleAllergen(a.key)}
+                      className="admin-btn"
+                      style={button(active ? 'accent' : 'secondary', { padding: '6px 11px 6px 7px', fontSize: 11.5, gap: 5 })}
+                    >
+                      <img src={a.icon} alt="" style={{ width: 16, height: 16, flexShrink: 0 }} />
+                      {a.en}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

@@ -1,5 +1,19 @@
 import ImageSlot from './ImageSlot.jsx';
 import BuilderPanel from './BuilderPanel.jsx';
+import { getAllergen } from '../allergens.js';
+
+function AllergenIcons({ allergens, lang }) {
+  if (!allergens || !allergens.length) return null;
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+      {allergens.map(key => {
+        const a = getAllergen(key);
+        if (!a) return null;
+        return <img key={key} src={a.icon} alt={lang === 'ar' ? a.ar : a.en} title={lang === 'ar' ? a.ar : a.en} style={{ width: 15, height: 15 }} />;
+      })}
+    </span>
+  );
+}
 
 function SpicyIcon() {
   return (
@@ -19,6 +33,7 @@ export default function ItemRow({
   const desc = isAr ? item.descAr : item.descEn;
   const collab = isAr ? item.collabAr : item.collabEn;
   const hasBuilder = !!(item.buildConfig && item.buildConfig.length);
+  const hasNutrition = ['cal', 'protein', 'carbs', 'fat'].some(k => item.nutrition[k] && String(item.nutrition[k]).trim());
 
   return (
     <>
@@ -33,6 +48,7 @@ export default function ItemRow({
                 {name}
               </span>
               {item.spicy ? <SpicyIcon /> : null}
+              <AllergenIcons allergens={item.allergens} lang={lang} />
               {item.isNew ? (
                 <span style={{ fontFamily: strings.bodyFont, fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--brand-primary)', border: '1px solid var(--brand-primary)', borderRadius: 999, padding: '2px 8px' }}>
                   {strings.newLabel}
@@ -55,7 +71,7 @@ export default function ItemRow({
             <div style={{ fontFamily: strings.bodyFont, fontSize: 14, lineHeight: 1.55, color: '#5a5f5a', marginTop: 5 }}>{desc}</div>
           ) : null}
           <div style={{ display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
-            {strings.nutritionGloballyEnabled && item.nutritionEnabled ? (
+            {strings.nutritionGloballyEnabled && item.nutritionEnabled && hasNutrition ? (
               <button
                 onClick={e => { e.stopPropagation(); onOpenInfo(); }}
                 style={{ fontFamily: strings.bodyFont, fontSize: 12, fontWeight: 700, color: 'var(--brand-primary)', background: 'none', border: '1px solid var(--brand-primary)', borderRadius: 999, padding: '8px 14px', minHeight: 36, cursor: 'pointer' }}

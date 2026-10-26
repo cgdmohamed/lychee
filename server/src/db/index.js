@@ -22,6 +22,9 @@ const itemColumns = db.prepare("PRAGMA table_info(items)").all().map(c => c.name
 if (!itemColumns.includes('nutrition_enabled')) {
   db.exec('ALTER TABLE items ADD COLUMN nutrition_enabled INTEGER NOT NULL DEFAULT 1');
 }
+if (!itemColumns.includes('allergens')) {
+  db.exec("ALTER TABLE items ADD COLUMN allergens TEXT NOT NULL DEFAULT '[]'");
+}
 
 // The social links were hardcoded in the client until the admin-editable settings
 // were added. Seed them once (INSERT OR IGNORE — a no-op once the row exists) so an

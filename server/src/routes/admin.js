@@ -32,6 +32,16 @@ function slugify(text) {
   return String(text || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
+// Accepts an array (JSON body) or a comma-separated string (CSV cell) and returns a
+// JSON string ready to store. Not validated against a fixed allergen list here — the
+// known set lives client-side as display metadata (icon + bilingual label), so an
+// older client or a future icon added there never needs a server deploy to work.
+function normalizeAllergens(input) {
+  const arr = Array.isArray(input) ? input : typeof input === 'string' ? input.split(',') : [];
+  const clean = [...new Set(arr.map(v => String(v).trim()).filter(Boolean))].slice(0, 20);
+  return JSON.stringify(clean);
+}
+
 function uniqueCategoryKey(nameEn) {
   const base = slugify(nameEn) || 'category';
   const exists = db.prepare('SELECT 1 FROM categories WHERE key = ?');
@@ -96,7 +106,7 @@ router.delete('/categories/:id', (req, res) => {
 // ---- Items ----
 
 router.post('/items', (req, res) => {
-  const { categoryId, nameEn, nameAr, descEn, descAr, price, spicy, isNew, collabEn, collabAr, nutritionEnabled } = req.body || {};
+  const { categoryId, nameEn, nameAr, descEn, descAr, price, spicy, isNew, collabEn, collabAr, nutritionEnabled, allergens } = req.body || {};
   if (!categoryId || !nameEn || !nameAr || price === undefined) {
     return res.status(400).json({ error: 'categoryId, nameEn, nameAr, price required' });
   }
@@ -109,11 +119,11 @@ router.post('/items', (req, res) => {
 
   const sortOrder = nextSortOrder('items', 'category_id', categoryId);
   const result = db.prepare(
-    `INSERT INTO items (category_id, name_en, name_ar, desc_en, desc_ar, price, spicy, is_new, collab_en, collab_ar, nutrition_enabled, sort_order)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT INTO items (category_id, name_en, name_ar, desc_en, desc_ar, price, spicy, is_new, collab_en, collab_ar, nutrition_enabled, allergens, sort_order)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     categoryId, nameEn, nameAr, descEn || null, descAr || null, numericPrice, spicy ? 1 : 0, isNew ? 1 : 0,
-    collabEn || null, collabAr || null, nutritionEnabled === false ? 0 : 1, sortOrder
+    collabEn || null, collabAr || null, nutritionEnabled === false ? 0 : 1, normalizeAllergens(allergens), sortOrder
   );
 
   res.status(201).json(serializeItem(db.prepare('SELECT * FROM items WHERE id = ?').get(result.lastInsertRowid)));
@@ -131,7 +141,7 @@ router.put('/items/:id', (req, res) => {
   }
   db.prepare(
     `UPDATE items SET name_en=?, name_ar=?, desc_en=?, desc_ar=?, price=?, image=?, spicy=?, is_new=?,
-       collab_en=?, collab_ar=?, cal=?, protein=?, carbs=?, fat=?, nutrition_enabled=? WHERE id=?`
+       collab_en=?, collab_ar=?, cal=?, protein=?, carbs=?, fat=?, nutrition_enabled=?, allergens=? WHERE id=?`
   ).run(
     b.nameEn ?? item.name_en,
     b.nameAr ?? item.name_ar,
@@ -148,6 +158,7 @@ router.put('/items/:id', (req, res) => {
     b.carbs !== undefined ? b.carbs : item.carbs,
     b.fat !== undefined ? b.fat : item.fat,
     b.nutritionEnabled !== undefined ? (b.nutritionEnabled ? 1 : 0) : item.nutrition_enabled,
+    b.allergens !== undefined ? normalizeAllergens(b.allergens) : item.allergens,
     item.id
   );
   res.json(serializeItem(db.prepare('SELECT * FROM items WHERE id = ?').get(item.id)));
@@ -227,7 +238,7 @@ router.put('/settings/:key', (req, res) => {
 
 const ITEM_CSV_COLUMNS = [
   'id', 'category_key', 'name_en', 'name_ar', 'desc_en', 'desc_ar', 'price',
-  'spicy', 'is_new', 'collab_en', 'collab_ar', 'nutrition_enabled', 'cal', 'protein', 'carbs', 'fat', 'image',
+  'spicy', 'is_new', 'collab_en', 'collab_ar', 'nutrition_enabled', 'cal', 'protein', 'carbs', 'fat', 'allergens', 'image',
 ];
 
 router.get('/export/items.csv', (req, res) => {
@@ -251,6 +262,7 @@ router.get('/export/items.csv', (req, res) => {
         protein: item.nutrition.protein || '',
         carbs: item.nutrition.carbs || '',
         fat: item.nutrition.fat || '',
+        allergens: item.allergens.join(','),
         image: item.image || '',
       });
     });
@@ -297,11 +309,11 @@ router.post('/import/items.csv', fileUpload.single('file'), (req, res) => {
   const updateStmt = db.prepare(
     `UPDATE items SET category_id=@categoryId, name_en=@nameEn, name_ar=@nameAr, desc_en=@descEn, desc_ar=@descAr,
        price=@price, spicy=@spicy, is_new=@isNew, collab_en=@collabEn, collab_ar=@collabAr, nutrition_enabled=@nutritionEnabled,
-       cal=@cal, protein=@protein, carbs=@carbs, fat=@fat, image=@image WHERE id=@id`
+       cal=@cal, protein=@protein, carbs=@carbs, fat=@fat, allergens=@allergens, image=@image WHERE id=@id`
   );
   const insertStmt = db.prepare(
-    `INSERT INTO items (category_id, name_en, name_ar, desc_en, desc_ar, price, spicy, is_new, collab_en, collab_ar, nutrition_enabled, cal, protein, carbs, fat, image, sort_order)
-     VALUES (@categoryId,@nameEn,@nameAr,@descEn,@descAr,@price,@spicy,@isNew,@collabEn,@collabAr,@nutritionEnabled,@cal,@protein,@carbs,@fat,@image,@sortOrder)`
+    `INSERT INTO items (category_id, name_en, name_ar, desc_en, desc_ar, price, spicy, is_new, collab_en, collab_ar, nutrition_enabled, cal, protein, carbs, fat, allergens, image, sort_order)
+     VALUES (@categoryId,@nameEn,@nameAr,@descEn,@descAr,@price,@spicy,@isNew,@collabEn,@collabAr,@nutritionEnabled,@cal,@protein,@carbs,@fat,@allergens,@image,@sortOrder)`
   );
   const findByCategoryAndName = db.prepare('SELECT id FROM items WHERE category_id = ? AND name_en = ?');
   const findById = db.prepare('SELECT id, category_id FROM items WHERE id = ?');
@@ -349,6 +361,7 @@ router.post('/import/items.csv', fileUpload.single('file'), (req, res) => {
         protein: row.protein || null,
         carbs: row.carbs || null,
         fat: row.fat || null,
+        allergens: normalizeAllergens(row.allergens || ''),
         image: row.image || null,
       };
 
@@ -473,6 +486,7 @@ router.post('/import/menu.json', fileUpload.single('file'), (req, res) => {
           protein: it.nutrition ? (it.nutrition.protein ?? null) : null,
           carbs: it.nutrition ? (it.nutrition.carbs ?? null) : null,
           fat: it.nutrition ? (it.nutrition.fat ?? null) : null,
+          allergens: normalizeAllergens(it.allergens),
         };
 
         let itemId;
@@ -480,15 +494,15 @@ router.post('/import/menu.json', fileUpload.single('file'), (req, res) => {
           db.prepare(
             `UPDATE items SET category_id=@categoryId, name_en=@nameEn, name_ar=@nameAr, desc_en=@descEn, desc_ar=@descAr,
                price=@price, image=@image, spicy=@spicy, is_new=@isNew, collab_en=@collabEn, collab_ar=@collabAr, nutrition_enabled=@nutritionEnabled,
-               cal=@cal, protein=@protein, carbs=@carbs, fat=@fat WHERE id=@id`
+               cal=@cal, protein=@protein, carbs=@carbs, fat=@fat, allergens=@allergens WHERE id=@id`
           ).run({ ...fields, id: itemRow.id });
           itemId = itemRow.id;
           result.itemsUpdated++;
         } else {
           const sortOrder = nextSortOrder('items', 'category_id', categoryId);
           const r = db.prepare(
-            `INSERT INTO items (category_id,name_en,name_ar,desc_en,desc_ar,price,image,spicy,is_new,collab_en,collab_ar,nutrition_enabled,cal,protein,carbs,fat,sort_order)
-             VALUES (@categoryId,@nameEn,@nameAr,@descEn,@descAr,@price,@image,@spicy,@isNew,@collabEn,@collabAr,@nutritionEnabled,@cal,@protein,@carbs,@fat,@sortOrder)`
+            `INSERT INTO items (category_id,name_en,name_ar,desc_en,desc_ar,price,image,spicy,is_new,collab_en,collab_ar,nutrition_enabled,cal,protein,carbs,fat,allergens,sort_order)
+             VALUES (@categoryId,@nameEn,@nameAr,@descEn,@descAr,@price,@image,@spicy,@isNew,@collabEn,@collabAr,@nutritionEnabled,@cal,@protein,@carbs,@fat,@allergens,@sortOrder)`
           ).run({ ...fields, sortOrder });
           itemId = r.lastInsertRowid;
           result.itemsCreated++;

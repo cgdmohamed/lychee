@@ -10,10 +10,14 @@ A bilingual (EN/AR) digital restaurant menu with an admin CMS.
 ## What's implemented
 
 - **Public menu API** (`GET /api/menu`) — categories, items, prices, descriptions, spicy/new/collab
-  badges, nutrition facts, and build-your-own configs, all bilingual, served from SQLite (seeded
-  from the original menu data).
+  badges, allergen icons, nutrition facts, and build-your-own configs, all bilingual, served
+  from SQLite (seeded from the original menu data). An item's nutrition facts only show the
+  values actually entered — leaving protein blank, say, hides just that stat instead of a
+  placeholder, and the whole panel is skipped if nothing was entered at all.
 - **Admin CMS** (`/admin`, JWT-protected) — create/edit/delete categories and items, edit
-  nutrition facts, toggle spicy/new badges, toggle whether an item's nutrition facts are shown
+  nutrition facts, tag an item with any of 8 allergen icons (dairy, egg, fish, peanut, tree
+  nuts, soy, wheat/gluten, mustard — shown next to the item name on the public menu and in its
+  detail popup), toggle spicy/new badges, toggle whether an item's nutrition facts are shown
   to customers at all (per item — useful for items where the values aren't meaningful or
   haven't been measured yet; enabled by default) plus a sitewide "nutrition facts" switch in
   the sidebar that overrides every item's own toggle at once (turning it back on restores each

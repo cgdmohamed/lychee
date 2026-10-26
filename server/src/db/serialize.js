@@ -1,5 +1,16 @@
 import { db } from './index.js';
 
+// Stored as a JSON array (e.g. '["dairy","egg"]'); a malformed or pre-migration value
+// (old rows default to '[]', but tolerate garbage rather than 500 the whole menu).
+function parseAllergens(raw) {
+  try {
+    const parsed = JSON.parse(raw || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 const selectSteps = db.prepare('SELECT * FROM build_steps WHERE item_id = ? ORDER BY sort_order ASC');
 const selectOptions = db.prepare('SELECT * FROM build_options WHERE step_id = ? ORDER BY sort_order ASC');
 const selectItems = db.prepare('SELECT * FROM items WHERE category_id = ? ORDER BY sort_order ASC');
@@ -34,6 +45,7 @@ export function serializeItem(item) {
     collabEn: item.collab_en,
     collabAr: item.collab_ar,
     nutritionEnabled: !!item.nutrition_enabled,
+    allergens: parseAllergens(item.allergens),
     nutrition: {
       cal: item.cal,
       protein: item.protein,
